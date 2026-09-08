@@ -1,0 +1,17 @@
+{
+  "id": "{E526E4DF-8066-4572-8D80-03C80079DD2E}",
+  "library": "{99177A7D-637B-4A9D-AA26-87FEFE79ADB1}",
+  "name": "Tueroeffner",
+  "type": 3,
+  "vendor": "",
+  "aliases": [
+    "Türöffner",
+    "DG65 Toolkit Türöffner",
+    "Formular-Passwortschutz"
+  ],
+  "url": "https://github.com/DG65/Tueroeffner",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "TUER"
+}

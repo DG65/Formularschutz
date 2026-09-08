@@ -1,0 +1,31 @@
+# Changelog
+
+Alle nennenswerten Änderungen an diesem Modul werden hier dokumentiert.
+Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
+
+## [0.1.0] - 2026-09-08
+
+### Added
+- Erstes Release. Passwortschutz fürs eigene Konfigurationsformular: Panel „🔒 Türöffner
+  aktivieren“ (Passwort zweimal, Tippfehler-Schutz), danach zeigt das Formular beim Öffnen nur noch
+  Passwortfeld + „🔓 Entsperren“. Im entsperrten Zustand „🔒 Jetzt sperren“ (wirkt sofort) und
+  „Passwort ändern/deaktivieren“ (beide Felder leer = deaktivieren).
+  `TUER_UnlockVault`/`TUER_LockVaultNow`/`TUER_SetVaultPassword`.
+- Vertrag für andere Module: `TUER_CheckAccess($id, $password): bool` (zustandsloser
+  Passwort-Vergleich) und `TUER_IsActive($id): bool` (Fail-open-Hilfe für Konsumenten). Erster
+  Konsument: OCPPHub (Abschnittsschutz Kundenverwaltung/Abrechnung). Muster für Partnermodule im
+  README.
+- Passwort gehasht (`password_hash()`), nie Klartext; Attribute statt Properties. Fail-open bei
+  Attribut-Verlust durch Modul-Resync — nie „gesperrt ohne bekanntes Passwort“. Kein Auto-Timeout
+  (Dietmars Entscheidung). Ausweg per Skript dokumentiert (`TUER_SetVaultPassword`).
+- **Ausdrücklich KEIN echter Sicherheitsmechanismus** — schützt nur Formular-Klicks, nicht
+  Skript-/API-Zugriff, kennt nur ein Passwort statt Nutzeridentität. Steht im Formular, README und
+  CLAUDE.md.
+- Formular nach Verbund-Konvention (Zweck-Intro, News, Doku, Rückmeldungen, Über-dieses-Modul),
+  Prüfstand `.tools/test-form.php` (Lebenszyklus ohne Symcon, läuft in der CI),
+  `.tools/check-standalone.php`, PolyForm-Noncommercial-Lizenz.
+
+### Herkunft
+- Design und Code entstammen dem kurzzeitig in StrukturHub gebauten „Formular-Tresor“
+  (Repo `DG65/NRGStrukturHub`, Commit `c4a2c5a`, revertiert in `ae8b88f`) — auf Dietmars
+  Entscheidung (30.08.2026) als eigenständiges DG65-Toolkit-Modul ausgekoppelt.

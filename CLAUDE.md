@@ -1,0 +1,105 @@
+# Türöffner — Hinweise für die Arbeit an diesem Repository
+
+## Einordnung
+
+- **Marke: DG65 Toolkit**, nicht NRG-Stack (Dietmars Entscheidung, 30.08.2026). Toolkit =
+  horizontale, domänenfreie Plattform-Werkzeuge ohne Energie-Fachwissen (Gründungspaar
+  GleitenderMittelwert + StrukturHub, dann MigrationsHub, jetzt Türöffner). NRG-Stack =
+  vertikale Energie-Module. `library.json→name` folgt dem Muster `"DG65 Toolkit <Modulname>"`.
+- **Name:** Türöffner (Dietmar, 01.09.2026). ASCII-Schreibweise für Repo/Ordner/Klasse:
+  `Tueroeffner` (Klassenname = Modulname, PHP-Klasse ohne Umlaut; die Anzeige übersetzt
+  `locale.json` auf „Türöffner“). Präfix `TUER`.
+- **Herkunft:** Das Design wurde zuerst in StrukturHub gebaut (Commit `c4a2c5a` im Repo
+  `DG65/NRGStrukturHub`, revertiert in `ae8b88f`) und auf Dietmars Entscheidung als eigenes
+  Modul ausgekoppelt — Zugriffsschutz hat fachlich nichts mit Objektbaum-Struktur zu tun.
+  Kickoff-Briefing: `/Users/dietmar/Nextcloud/Claude/Tueroeffner-Kickoff.md`.
+- **Verbund-Manifest SUITE.md** liegt NICHT im Repo, sondern nur lokal unter
+  `/Users/dietmar/Nextcloud/Claude/SUITE.md` (öffentliche Repos vs. Architektur-Know-how).
+  Bei Konventionsfragen zuerst dort nachlesen, nicht Code zwischen Modulen vergleichen. Die
+  Stolpersteine/Store-Review/Formular-Optik dort gelten für Symcon-Module generell, nicht nur
+  für NRG-Stack. Der Chef im Ring für neue Konventionen ist EMS.
+
+## Grundregeln — nicht verhandelbar
+
+1. **KEIN Sicherheitsmechanismus, und das muss so bleiben.** Bei jeder Erweiterung/Erwähnung
+   ehrlich sagen: schützt nur Formular-Klicks in der Konsole, nicht Skript-/API-Zugriff
+   (`IPS_GetConfiguration()`/`IPS_SetProperty()` gehen komplett vorbei), kennt nur ein Passwort,
+   keine Nutzeridentität (Symcon-Konsole = ein gemeinsames Login, kein Kernel-Hook „wer klickt“).
+   Steht im Formular (Zweck-Intro, Doku-Panel), im README und hier — an allen drei Stellen
+   mitführen, nie als „damit ist es sicher“ darstellen.
+2. **Passwort immer gehasht** (`password_hash()`/`password_verify()`), nie im Klartext
+   speichern, loggen, debuggen oder anzeigen. Auch ein falsch eingegebenes Passwort gehört
+   nicht ins Debug.
+3. **Attribute, nicht Properties** (`VaultPasswordHash`, `VaultUnlocked`) — Verbund-Konvention
+   Zugangsdaten; hält den Hash aus `IPS_GetConfiguration()` heraus.
+4. **Fail-open per Design.** Leerer Hash = IMMER volles, offenes Formular, nie „gesperrt ohne
+   bekanntes Passwort“. Grund: `MC_DeleteModule()`+`MC_CreateModule()`-Resyncs löschen
+   Attribute (SUITE.md Stolperstein 5). Konsumenten sollen sich gleich verhalten
+   (`TUER_IsActive()` existiert genau dafür). Niemals in Richtung „bei Zweifel sperren“ umbauen.
+5. **Kein Auto-Timeout** (Dietmars ausdrückliche Entscheidung, 30.08.2026). Entsperrt bleibt
+   entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.
+6. **`ReloadForm()`-Regel.** In DIESEM Modul ist `ReloadForm()` in allen Aktionen unbedenklich,
+   weil das Formular außer den Passwortfeldern keine Eingaben hat, die verloren gehen könnten —
+   deshalb wirkt „Jetzt sperren“ hier sofort. Sobald jemals ein Fachfeld ins Formular kommt, gilt
+   SUITE.md Stolperstein 12: `ReloadForm()` nur aus dem gesperrten Zustand (einziges Feld =
+   Passwort), sonst `UpdateFormField()`. Für Konsumenten mit Fachfeldern (OCPPHub) gilt das
+   schon jetzt — siehe Muster im README.
+7. **Vertrag ist öffentliche API.** `TUER_CheckAccess(string): bool` und `TUER_IsActive(): bool`
+   werden nie umbenannt, Rückgabetyp bleibt `bool` (Text-als-bool-Falle, SUITE.md „Sichtbare
+   Rückmeldung“ Punkt 3). Keine PHP-Standardwerte auf öffentlichen Methoden, nur skalare
+   Parametertypen (Stolperstein 8/20) — der Prüfstand `.tools/test-form.php` Block 8 erzwingt
+   das. Erweiterungen nur als NEUE Funktionen, nie als angebaute Parameter.
+8. **Eigenständigkeit.** Türöffner setzt kein anderes Modul voraus und wird von keinem
+   vorausgesetzt — jeder Konsument ruft hinter `function_exists()` auf. Prüfwerkzeug:
+   `.tools/check-standalone.php`.
+9. **Sprachregel:** alles Nutzersichtbare auf Deutsch, keine vermeidbaren Anglizismen; Idents,
+   Methodennamen und feststehende Fachbegriffe ausgenommen.
+10. **Keine eigene Anlage als Norm:** dieses Modul hat keine „Anlage“, aber trotzdem keine
+    Integrator-/Kunden-Details von Dietmar hartkodieren — Szenarien nur als „z. B.“.
+11. **Store-/Stable-Regeln von Anfang an:** Formular-Buttons nur per `echo`/`UpdateFormField`
+    (nie `IPS_SetProperty`+`ApplyChanges` selbst), `vendor=""`, `library.json` nur mit den
+    erlaubten Schlüsseln, Link-Buttons als `'onClick' => "echo '<URL>';", 'link' => true`.
+    Modul nie zusätzlich über den Symcon Module Store buchen (Stolperstein 6).
+
+## Formular-Verzweigung (Kernmechanik)
+
+`GetConfigurationForm()` verzweigt GANZ AM ANFANG, bevor irgendein anderer Inhalt gebaut wird:
+
+1. kein Passwort → volles Formular + Panel „🔒 Türöffner aktivieren“ (aufgeklappt)
+2. Passwort gesetzt, gesperrt → NUR Label + `PasswordTextBox` + „🔓 Entsperren“ (`LockedForm()`)
+3. Passwort gesetzt, entsperrt → volles Formular + Panel „🔓 Türöffner — entsperrt“ mit „Jetzt
+   sperren“ und Unterpanel „Passwort ändern/deaktivieren“ (leer+leer = deaktivieren)
+
+Rahmen nach SUITE.md „Einheitliche Formular-Optik“: 👋 Zweck-Intro (einmalig) → 🆕 News (je
+Version) → 📖 Doku (mit Version) → Fachpanels (Tresor, „🔌 Für andere Module“) → 💬 Rückmeldungen
+(einmalig) → 🧡 Über dieses Modul (nie dismissible). `LICENSE_URL` zeigt auf `main` — dieses Repo
+hat von Anfang an PolyForm, keinen MIT-Altstand.
+
+## Prüfen
+
+```
+php .tools/test-form.php          # 0 = alle Blöcke bestanden (läuft auch in der CI)
+php .tools/check-standalone.php   # 0 = kein ungesicherter Fremdaufruf
+```
+
+Der Prüfstand simuliert `IPSModule` (Attribute/Status/ReloadForm) und spielt den kompletten
+Lebenszyklus inkl. Resync-Fail-open durch. Live-Test in Symcon bleibt trotzdem Pflicht vor jedem
+Release: Installation nur manuell über die Modulverwaltung (keine API/Skript-Auslösung), Formular
+in allen drei Zuständen durchklicken, jeden Button auf sichtbare Rückmeldung prüfen.
+
+## Konsumenten
+
+- **OCPPHub** (Sitzung „OCPPHub“, `local_de03f444-bab6-4008-bd51-3ba2a67e4e27`): wartet auf
+  diesen Vertrag für den Abschnittsschutz Kundenverwaltung/Abrechnung (`.docs/architektur.md`
+  „Formular-Struktur“ und Pflichtenheft S7 dort). Anwendungsfall: NICHT das ganze Formular,
+  nur einzelne Panels sperren, Basis/Steuerung bleiben sichtbar — deckt `CheckAccess()` +
+  `IsActive()` ab; OCPPHub baut eigenes `SensitiveUnlocked`-Attribut + eigene Sperr-UI.
+- Neue Konsumenten: Muster im README („Muster für ein Partnermodul“), Aufruf immer hinter
+  `function_exists()` und in `try/catch (Throwable)`.
+
+## Roadmap
+
+- **v0.1 (aktuell):** Passwortschutz fürs eigene Formular + Vertrag `CheckAccess`/`IsActive`.
+- Offen/bewusst nicht drin: Auto-Timeout (abgelehnt), mehrere Passwörter/Rollen je Instanz
+  (wäre Schein-Sicherheit — für Rollen gibt es Symcons Benutzerverwaltung), zentrales Sperren
+  fremder Formulare (technisch unmöglich in Symcon).

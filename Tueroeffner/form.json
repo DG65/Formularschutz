@@ -1,0 +1,8 @@
+{
+  "elements": [],
+  "actions": [],
+  "status": [
+    { "code": 102, "icon": "active", "caption": "Aktiv — Passwort gesetzt, Formular fragt beim Öffnen nach dem Passwort" },
+    { "code": 104, "icon": "inactive", "caption": "Inaktiv — noch kein Passwort gesetzt, Formular ist offen" }
+  ]
+}
