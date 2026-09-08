@@ -103,11 +103,16 @@ oder es von sich aus tut.
 
 ## Konsumenten
 
-- **OCPPHub** (Sitzung „OCPPHub“, `local_de03f444-bab6-4008-bd51-3ba2a67e4e27`): wartet auf
-  diesen Vertrag für den Abschnittsschutz Kundenverwaltung/Abrechnung (`.docs/architektur.md`
-  „Formular-Struktur“ und Pflichtenheft S7 dort). Anwendungsfall: NICHT das ganze Formular,
-  nur einzelne Panels sperren, Basis/Steuerung bleiben sichtbar — deckt `CheckAccess()` +
-  `IsActive()` ab; OCPPHub baut eigenes `SensitiveUnlocked`-Attribut + eigene Sperr-UI.
+- **OCPPHub** (Sitzung „OCPPHub“, `local_de03f444-bab6-4008-bd51-3ba2a67e4e27`): Vertrag am
+  08.09.2026 übergeben und von OCPPHub als vollständig/passend bestätigt — deckt den
+  Abschnittsschutz Kundenverwaltung/Abrechnung ab (`.docs/architektur.md` „Formular-Struktur“,
+  Pflichtenheft S7 dort), der alte StrukturHub-Platzhalter-Vertrag dort ist aufgelöst. Kein
+  separater `vaultInstanceId`-Parameter nötig, das README-Muster
+  (`UnlockSensitive`/`LockSensitiveNow`) passt direkt. Anwendungsfall: NICHT das ganze
+  Formular, nur einzelne Panels sperren, Basis/Steuerung bleiben sichtbar. **Noch nicht
+  gebaut** (kein akuter Auftrag von Dietmar bei OCPPHub, Stand 08.09.2026) — bei einer
+  künftigen Breaking-Change-Erwägung am Vertrag zuerst dort nachfragen, ob inzwischen gebaut
+  wurde.
 - Neue Konsumenten: Muster im README („Muster für ein Partnermodul“), Aufruf immer hinter
   `function_exists()` und in `try/catch (Throwable)`.
 
