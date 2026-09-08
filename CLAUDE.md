@@ -87,6 +87,20 @@ Lebenszyklus inkl. Resync-Fail-open durch. Live-Test in Symcon bleibt trotzdem P
 Release: Installation nur manuell über die Modulverwaltung (keine API/Skript-Auslösung), Formular
 in allen drei Zuständen durchklicken, jeden Button auf sichtbare Rückmeldung prüfen.
 
+## Branch-Konvention: `beta` ist der Arbeitsstand, `main` nur nach Live-Bewährung
+
+**Wichtig, seit dem allerersten Push (08.09.2026) so zu halten** (Hinweis Katasteramt/Dietmar,
+Verbund-Konvention aus SUITE.md „Repo-Namen"/Suite-Release-Abschnitt): `main` bedeutet im
+Verbund „schon mal an einer echten Instanz gelaufen", nicht „letzter Commit". Der allererste
+Push auf ein leeres Repo durfte `main`=`beta` setzen (identischer Code, noch nichts zu
+verlieren) — das war ein Einmalfall, KEIN Muster für künftige Commits.
+
+**Ab jetzt:** jeder Commit geht zuerst auf `beta`. `main` wird erst nach einem echten Live-Test
+an einer laufenden Symcon-Instanz manuell nachgezogen (Fast-Forward), nie automatisch mit
+jedem Push. Wann genau promotet wird, entscheidet Dietmar selbst — nicht proaktiv nachfragen
+oder erinnern (siehe Memory `feedback-beta-main-freigabe`), sondern warten, bis er es sagt
+oder es von sich aus tut.
+
 ## Konsumenten
 
 - **OCPPHub** (Sitzung „OCPPHub“, `local_de03f444-bab6-4008-bd51-3ba2a67e4e27`): wartet auf
