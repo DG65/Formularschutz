@@ -1,18 +1,18 @@
-# Türöffner — Hinweise für die Arbeit an diesem Repository
+# Pförtner — Hinweise für die Arbeit an diesem Repository
 
 ## Einordnung
 
 - **Marke: DG65 Toolkit**, nicht NRG-Stack (Dietmars Entscheidung, 30.08.2026). Toolkit =
   horizontale, domänenfreie Plattform-Werkzeuge ohne Energie-Fachwissen (Gründungspaar
-  GleitenderMittelwert + StrukturHub, dann MigrationsHub, jetzt Türöffner). NRG-Stack =
+  GleitenderMittelwert + StrukturHub, dann MigrationsHub, jetzt Pförtner). NRG-Stack =
   vertikale Energie-Module. `library.json→name` folgt dem Muster `"DG65 Toolkit <Modulname>"`.
-- **Name:** Türöffner (Dietmar, 01.09.2026). ASCII-Schreibweise für Repo/Ordner/Klasse:
-  `Tueroeffner` (Klassenname = Modulname, PHP-Klasse ohne Umlaut; die Anzeige übersetzt
-  `locale.json` auf „Türöffner“). Präfix `TUER`.
+- **Name:** Pförtner (Dietmar, 01.09.2026). ASCII-Schreibweise für Repo/Ordner/Klasse:
+  `Pfoertner` (Klassenname = Modulname, PHP-Klasse ohne Umlaut; die Anzeige übersetzt
+  `locale.json` auf „Pförtner“). Präfix `PFOE`.
 - **Herkunft:** Das Design wurde zuerst in StrukturHub gebaut (Commit `c4a2c5a` im Repo
   `DG65/NRGStrukturHub`, revertiert in `ae8b88f`) und auf Dietmars Entscheidung als eigenes
   Modul ausgekoppelt — Zugriffsschutz hat fachlich nichts mit Objektbaum-Struktur zu tun.
-  Kickoff-Briefing: `/Users/dietmar/Nextcloud/Claude/Tueroeffner-Kickoff.md`.
+  Kickoff-Briefing: `/Users/dietmar/Nextcloud/Claude/Pfoertner-Kickoff.md`.
 - **Verbund-Manifest SUITE.md** liegt NICHT im Repo, sondern nur lokal unter
   `/Users/dietmar/Nextcloud/Claude/SUITE.md` (öffentliche Repos vs. Architektur-Know-how).
   Bei Konventionsfragen zuerst dort nachlesen, nicht Code zwischen Modulen vergleichen. Die
@@ -35,7 +35,7 @@
 4. **Fail-open per Design.** Leerer Hash = IMMER volles, offenes Formular, nie „gesperrt ohne
    bekanntes Passwort“. Grund: `MC_DeleteModule()`+`MC_CreateModule()`-Resyncs löschen
    Attribute (SUITE.md Stolperstein 5). Konsumenten sollen sich gleich verhalten
-   (`TUER_IsActive()` existiert genau dafür). Niemals in Richtung „bei Zweifel sperren“ umbauen.
+   (`PFOE_IsActive()` existiert genau dafür). Niemals in Richtung „bei Zweifel sperren“ umbauen.
 5. **Kein Auto-Timeout** (Dietmars ausdrückliche Entscheidung, 30.08.2026). Entsperrt bleibt
    entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.
 6. **`ReloadForm()`-Regel.** In DIESEM Modul ist `ReloadForm()` in allen Aktionen unbedenklich,
@@ -44,12 +44,12 @@
    SUITE.md Stolperstein 12: `ReloadForm()` nur aus dem gesperrten Zustand (einziges Feld =
    Passwort), sonst `UpdateFormField()`. Für Konsumenten mit Fachfeldern (OCPPHub) gilt das
    schon jetzt — siehe Muster im README.
-7. **Vertrag ist öffentliche API.** `TUER_CheckAccess(string): bool` und `TUER_IsActive(): bool`
+7. **Vertrag ist öffentliche API.** `PFOE_CheckAccess(string): bool` und `PFOE_IsActive(): bool`
    werden nie umbenannt, Rückgabetyp bleibt `bool` (Text-als-bool-Falle, SUITE.md „Sichtbare
    Rückmeldung“ Punkt 3). Keine PHP-Standardwerte auf öffentlichen Methoden, nur skalare
    Parametertypen (Stolperstein 8/20) — der Prüfstand `.tools/test-form.php` Block 8 erzwingt
    das. Erweiterungen nur als NEUE Funktionen, nie als angebaute Parameter.
-8. **Eigenständigkeit.** Türöffner setzt kein anderes Modul voraus und wird von keinem
+8. **Eigenständigkeit.** Pförtner setzt kein anderes Modul voraus und wird von keinem
    vorausgesetzt — jeder Konsument ruft hinter `function_exists()` auf. Prüfwerkzeug:
    `.tools/check-standalone.php`.
 9. **Sprachregel:** alles Nutzersichtbare auf Deutsch, keine vermeidbaren Anglizismen; Idents,
@@ -65,9 +65,9 @@
 
 `GetConfigurationForm()` verzweigt GANZ AM ANFANG, bevor irgendein anderer Inhalt gebaut wird:
 
-1. kein Passwort → volles Formular + Panel „🔒 Türöffner aktivieren“ (aufgeklappt)
+1. kein Passwort → volles Formular + Panel „🔒 Pförtner aktivieren“ (aufgeklappt)
 2. Passwort gesetzt, gesperrt → NUR Label + `PasswordTextBox` + „🔓 Entsperren“ (`LockedForm()`)
-3. Passwort gesetzt, entsperrt → volles Formular + Panel „🔓 Türöffner — entsperrt“ mit „Jetzt
+3. Passwort gesetzt, entsperrt → volles Formular + Panel „🔓 Pförtner — entsperrt“ mit „Jetzt
    sperren“ und Unterpanel „Passwort ändern/deaktivieren“ (leer+leer = deaktivieren)
 
 Rahmen nach SUITE.md „Einheitliche Formular-Optik“: 👋 Zweck-Intro (einmalig) → 🆕 News (je

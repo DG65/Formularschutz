@@ -1,14 +1,14 @@
 <?php
 
 // ===========================================================================
-// Türöffner (DG65 Toolkit) — optionaler Passwortschutz für Konfigurations-
+// Pförtner (DG65 Toolkit) — optionaler Passwortschutz für Konfigurations-
 // formulare in der IP-Symcon-Verwaltungskonsole.
 //
 // WAS ES IST: eine Hürde gegen zufälliges oder unbefugtes Klicken. Wer ein
 // Passwort setzt, bekommt dieses Formular beim nächsten Öffnen nur noch als
 // Passwortabfrage zu sehen, bis jemand entsperrt. Andere Module (erster
 // Konsument: OCPPHub, Kundenverwaltung/Abrechnung) fragen über
-// TUER_CheckAccess() dasselbe Passwort für ihre EIGENEN sensiblen Panels ab.
+// PFOE_CheckAccess() dasselbe Passwort für ihre EIGENEN sensiblen Panels ab.
 //
 // WAS ES NICHT IST — und das muss bei jeder Erweiterung so bleiben:
 // KEIN Sicherheitsmechanismus. Die Symcon-Konsole kennt keine Nutzer-
@@ -21,15 +21,15 @@
 // vorausgesetzt (jeder Konsument ruft hinter function_exists() auf).
 // ===========================================================================
 
-class Tueroeffner extends IPSModule
+class Pfoertner extends IPSModule
 {
     private const LIBRARY_GUID = '{99177A7D-637B-4A9D-AA26-87FEFE79ADB1}';
     private const MODULE_GUID  = '{E526E4DF-8066-4572-8D80-03C80079DD2E}';
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik").
     private const NEWS_VERSION = '0.1.0';
-    private const REPO_URL     = 'https://github.com/DG65/Tueroeffner';
-    private const LICENSE_URL  = 'https://github.com/DG65/Tueroeffner/blob/main/LICENSE';
+    private const REPO_URL     = 'https://github.com/DG65/Pfoertner';
+    private const LICENSE_URL  = 'https://github.com/DG65/Pfoertner/blob/main/LICENSE';
     private const PAYPAL_URL   = 'https://paypal.me/DietmarGureth';
 
     public function Create()
@@ -68,11 +68,11 @@ class Tueroeffner extends IPSModule
     // -----------------------------------------------------------------
 
     /**
-     * TUER_CheckAccess($id, string $password): bool
+     * PFOE_CheckAccess($id, string $password): bool
      *
      * Zustandsloser Passwort-Vergleich für andere Module, die dasselbe
      * Passwort für ihre EIGENEN Formular-Panels nutzen wollen (hinter
-     * function_exists('TUER_CheckAccess'), wie jeder Fremdaufruf im
+     * function_exists('PFOE_CheckAccess'), wie jeder Fremdaufruf im
      * Verbund). Verändert NICHTS an dieser Instanz — kein Entsperren hier,
      * nur die Antwort auf "ist dieses Passwort richtig?".
      *
@@ -82,9 +82,9 @@ class Tueroeffner extends IPSModule
      * Muster wie hier (lockedForm()/GetConfigurationForm() als Referenz)
      * und ruft nur zur Prüfung diese Funktion auf.
      *
-     * Liefert false, solange kein Passwort gesetzt ist (Türöffner inaktiv)
+     * Liefert false, solange kein Passwort gesetzt ist (Pförtner inaktiv)
      * — Konsumenten sollten in diesem Fall FAIL-OPEN reagieren (Panels
-     * zeigen), dafür gibt es TUER_IsActive().
+     * zeigen), dafür gibt es PFOE_IsActive().
      *
      * Kein Sicherheitsmechanismus (siehe Kopfkommentar): nur ein Passwort,
      * keine Nutzeridentität; jeder, der es kennt, hat Zugriff. Das Passwort
@@ -97,10 +97,10 @@ class Tueroeffner extends IPSModule
     }
 
     /**
-     * TUER_IsActive($id): bool
+     * PFOE_IsActive($id): bool
      *
      * true, sobald ein Passwort gesetzt ist. Konsumenten prüfen das VOR dem
-     * Rendern ihrer Sperr-UI: inaktiver Türöffner (oder gar keine Instanz)
+     * Rendern ihrer Sperr-UI: inaktiver Pförtner (oder gar keine Instanz)
      * = Panels normal zeigen, keine Passwortabfrage — dasselbe Fail-open
      * wie beim eigenen Formular.
      */
@@ -118,7 +118,7 @@ class Tueroeffner extends IPSModule
     {
         $hash = $this->ReadAttributeString('VaultPasswordHash');
         if ($hash === '') {
-            return 'ℹ️ Kein Passwort gesetzt — der Türöffner ist inaktiv, das Formular ist ohnehin offen.';
+            return 'ℹ️ Kein Passwort gesetzt — der Pförtner ist inaktiv, das Formular ist ohnehin offen.';
         }
         if (!password_verify($password, $hash)) {
             // Bewusst OHNE das eingegebene Passwort im Log/Debug.
@@ -137,7 +137,7 @@ class Tueroeffner extends IPSModule
     public function LockVaultNow(): string
     {
         if ($this->ReadAttributeString('VaultPasswordHash') === '') {
-            return 'ℹ️ Kein Passwort gesetzt — es gibt nichts zu sperren. Erst im Panel „🔒 Türöffner aktivieren“ ein Passwort vergeben.';
+            return 'ℹ️ Kein Passwort gesetzt — es gibt nichts zu sperren. Erst im Panel „🔒 Pförtner aktivieren“ ein Passwort vergeben.';
         }
         $this->WriteAttributeBoolean('VaultUnlocked', false);
         // ReloadForm() ist in DIESEM Modul unbedenklich: das volle Formular
@@ -151,7 +151,7 @@ class Tueroeffner extends IPSModule
     }
 
     /**
-     * Passwort setzen/ändern/entfernen. Beide Felder leer = Türöffner
+     * Passwort setzen/ändern/entfernen. Beide Felder leer = Pförtner
      * deaktivieren (Hash löschen, Formular dauerhaft offen). Das zweite
      * Feld schützt nur vor Tippfehlern beim Setzen — ein vertipptes,
      * unbekanntes Passwort wäre sonst die einzige Art, sich (bis zum
@@ -163,13 +163,13 @@ class Tueroeffner extends IPSModule
 
         if ($newPassword === '' && $repeat === '') {
             if (!$wasActive) {
-                return 'ℹ️ Kein Passwort eingegeben — der Türöffner bleibt inaktiv.';
+                return 'ℹ️ Kein Passwort eingegeben — der Pförtner bleibt inaktiv.';
             }
             $this->WriteAttributeString('VaultPasswordHash', '');
             $this->WriteAttributeBoolean('VaultUnlocked', false);
             $this->refreshStatus();
             $this->ReloadForm();
-            return 'ℹ️ Türöffner deaktiviert — dieses Formular ist ab jetzt ohne Passwort erreichbar.';
+            return 'ℹ️ Pförtner deaktiviert — dieses Formular ist ab jetzt ohne Passwort erreichbar.';
         }
         if ($newPassword !== $repeat) {
             return '⛔ Die beiden Eingaben stimmen nicht überein — nichts geändert.';
@@ -180,8 +180,8 @@ class Tueroeffner extends IPSModule
         $this->refreshStatus();
         $this->ReloadForm();
         return $wasActive
-            ? '✅ Passwort geändert — gilt ab sofort auch für Partnermodule, die TUER_CheckAccess() nutzen.'
-            : '✅ Türöffner aktiviert — dieses Formular bleibt jetzt entsperrt, bis du „Jetzt sperren“ klickst oder es nach dem Schließen erneut öffnest.';
+            ? '✅ Passwort geändert — gilt ab sofort auch für Partnermodule, die PFOE_CheckAccess() nutzen.'
+            : '✅ Pförtner aktiviert — dieses Formular bleibt jetzt entsperrt, bis du „Jetzt sperren“ klickst oder es nach dem Schließen erneut öffnest.';
     }
 
     // -----------------------------------------------------------------
@@ -215,10 +215,10 @@ class Tueroeffner extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
             'caption' => '👋  Wozu dieses Modul?',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Der Türöffner legt ein Passwort vor Konfigurationsformulare in der Symcon-Konsole. Gedacht für Installationen mit mehreren Konsolen-Nutzern — z. B. ein Integrator, dessen Kunde selbst Skripte schreiben darf, aber nicht versehentlich in fremden Instanzen herumklicken soll, oder Formulare mit Kundendaten, die nicht jeder auf den ersten Blick sehen soll.'],
-                ['type' => 'Label', 'caption' => 'Ehrlich gesagt: Das ist eine Hürde, kein Schloss. Symcons Konsole kennt keine Nutzeridentität, und Skripte sowie IPS_SetProperty() gehen daran komplett vorbei. Für echte Zugriffskontrolle gibt es nur Symcons kostenpflichtige Benutzerverwaltung — der Türöffner ersetzt sie nicht.'],
+                ['type' => 'Label', 'caption' => 'Der Pförtner legt ein Passwort vor Konfigurationsformulare in der Symcon-Konsole. Gedacht für Installationen mit mehreren Konsolen-Nutzern — z. B. ein Integrator, dessen Kunde selbst Skripte schreiben darf, aber nicht versehentlich in fremden Instanzen herumklicken soll, oder Formulare mit Kundendaten, die nicht jeder auf den ersten Blick sehen soll.'],
+                ['type' => 'Label', 'caption' => 'Ehrlich gesagt: Das ist eine Hürde, kein Schloss. Symcons Konsole kennt keine Nutzeridentität, und Skripte sowie IPS_SetProperty() gehen daran komplett vorbei. Für echte Zugriffskontrolle gibt es nur Symcons kostenpflichtige Benutzerverwaltung — der Pförtner ersetzt sie nicht.'],
                 ['type' => 'Label', 'caption' => 'Andere Module (z. B. OCPPHub für Kundenverwaltung/Abrechnung) können dasselbe Passwort für ihre eigenen sensiblen Panels abfragen — siehe Panel „🔌 Für andere Module“.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TUER_AckPurposeIntro($id);'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckPurposeIntro($id);'],
             ],
         ];
     }
@@ -232,10 +232,10 @@ class Tueroeffner extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
             'caption' => '🆕  Neu in Version ' . self::NEWS_VERSION,
             'items' => [
-                ['type' => 'Label', 'caption' => '• Erstes Release: Passwortschutz für dieses Formular (Panel „🔒 Türöffner aktivieren“), Vertrag TUER_CheckAccess()/TUER_IsActive() für andere Module.'],
+                ['type' => 'Label', 'caption' => '• Erstes Release: Passwortschutz für dieses Formular (Panel „🔒 Pförtner aktivieren“), Vertrag PFOE_CheckAccess()/PFOE_IsActive() für andere Module.'],
                 ['type' => 'Label', 'caption' => '• Kein Auto-Timeout: entsperrt bleibt entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.'],
                 ['type' => 'Label', 'caption' => '• 👋 Zweck-Einführung ganz oben im Formular (einmalig wegklickbar).'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TUER_AckNews($id);'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckNews($id);'],
             ],
         ];
     }
@@ -244,18 +244,18 @@ class Tueroeffner extends IPSModule
     {
         $lib    = @IPS_GetLibrary(self::LIBRARY_GUID);
         $verTxt = (is_array($lib) && isset($lib['Version']))
-            ? 'ℹ️ Türöffner Version ' . $lib['Version'] . ' (Build ' . ($lib['Build'] ?? '?') . ')'
-            : 'ℹ️ Türöffner';
+            ? 'ℹ️ Pförtner Version ' . $lib['Version'] . ' (Build ' . ($lib['Build'] ?? '?') . ')'
+            : 'ℹ️ Pförtner';
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
             'caption' => '📖  Dokumentation & Hilfe',
             'items' => [
                 ['type' => 'Label', 'caption' => $verTxt],
-                ['type' => 'Label', 'caption' => 'Aktivieren: im Panel „🔒 Türöffner aktivieren“ ein Passwort zweimal eingeben und „Aktivieren“ klicken. Ab dem nächsten Öffnen zeigt dieses Formular nur noch ein Passwortfeld — bis jemand mit dem richtigen Passwort entsperrt.'],
+                ['type' => 'Label', 'caption' => 'Aktivieren: im Panel „🔒 Pförtner aktivieren“ ein Passwort zweimal eingeben und „Aktivieren“ klicken. Ab dem nächsten Öffnen zeigt dieses Formular nur noch ein Passwortfeld — bis jemand mit dem richtigen Passwort entsperrt.'],
                 ['type' => 'Label', 'caption' => 'Sperren/Entsperren: „Jetzt sperren“ wirkt sofort. Es gibt bewusst keinen automatischen Ablauf — entsperrt bleibt entsperrt, bis gesperrt wird oder das Formular geschlossen und neu geöffnet wird. Passwort ändern oder deaktivieren (beide Felder leer lassen) geht jederzeit im entsperrten Zustand.'],
-                ['type' => 'Label', 'caption' => 'WICHTIG — kein Sicherheitsmechanismus: Der Türöffner verhindert nur Klicks in Formularen. Skripte, die Konsolen-Skriptausführung und IPS_GetConfiguration()/IPS_SetProperty() gehen daran komplett vorbei. Er kennt nur EIN Passwort, keine Nutzeridentität — jeder, der es kennt, hat Zugriff. Für echte Rollen/Rechte braucht es Symcons kostenpflichtige Benutzerverwaltung.'],
-                ['type' => 'Label', 'caption' => 'Passwort vergessen? Weil das Modul absichtlich kein Sicherheitsmechanismus ist, gibt es einen Ausweg per Skript: TUER_SetVaultPassword(<InstanzID>, \'neu\', \'neu\') setzt ein neues Passwort, TUER_SetVaultPassword(<InstanzID>, \'\', \'\') deaktiviert den Türöffner.'],
-                ['type' => 'Label', 'caption' => 'Das Passwort wird nur als Hash gespeichert (password_hash), nie im Klartext — in einem Instanz-Attribut, nicht in einer Property. Bei einem erzwungenen Modul-Resync (Modul löschen + neu anlegen in der Modulverwaltung) geht das Attribut verloren: Der Türöffner fällt dann bewusst OFFEN zurück (nie „gesperrt ohne bekanntes Passwort“) — Passwort danach einfach neu setzen.'],
+                ['type' => 'Label', 'caption' => 'WICHTIG — kein Sicherheitsmechanismus: Der Pförtner verhindert nur Klicks in Formularen. Skripte, die Konsolen-Skriptausführung und IPS_GetConfiguration()/IPS_SetProperty() gehen daran komplett vorbei. Er kennt nur EIN Passwort, keine Nutzeridentität — jeder, der es kennt, hat Zugriff. Für echte Rollen/Rechte braucht es Symcons kostenpflichtige Benutzerverwaltung.'],
+                ['type' => 'Label', 'caption' => 'Passwort vergessen? Weil das Modul absichtlich kein Sicherheitsmechanismus ist, gibt es einen Ausweg per Skript: PFOE_SetVaultPassword(<InstanzID>, \'neu\', \'neu\') setzt ein neues Passwort, PFOE_SetVaultPassword(<InstanzID>, \'\', \'\') deaktiviert den Pförtner.'],
+                ['type' => 'Label', 'caption' => 'Das Passwort wird nur als Hash gespeichert (password_hash), nie im Klartext — in einem Instanz-Attribut, nicht in einer Property. Bei einem erzwungenen Modul-Resync (Modul löschen + neu anlegen in der Modulverwaltung) geht das Attribut verloren: Der Pförtner fällt dann bewusst OFFEN zurück (nie „gesperrt ohne bekanntes Passwort“) — Passwort danach einfach neu setzen.'],
                 ['type' => 'Label', 'caption' => 'Mehrere Instanzen sind erlaubt (z. B. ein Passwort pro Kunde/Gewerk). Jede Instanz hat ihr eigenes Passwort; Partnermodule nennen die Instanz, gegen die sie prüfen.'],
             ],
         ];
@@ -265,13 +265,13 @@ class Tueroeffner extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => true,
-            'caption' => '🔒  Türöffner aktivieren',
+            'caption' => '🔒  Pförtner aktivieren',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Noch kein Passwort gesetzt — dieses Formular ist offen. Passwort zweimal eingeben und „Aktivieren“ klicken.'],
                 ['type' => 'Label', 'caption' => 'Schützt nur vor Klicks in der Konsole, NICHT vor Skript-/API-Zugriff (siehe „📖 Dokumentation & Hilfe“). Fürs Tippfehler-Risiko wird das Passwort zweimal abgefragt.'],
                 ['type' => 'PasswordTextBox', 'name' => 'VaultNewPassword', 'caption' => 'Neues Passwort'],
                 ['type' => 'PasswordTextBox', 'name' => 'VaultNewPasswordRepeat', 'caption' => 'Neues Passwort wiederholen'],
-                ['type' => 'Button', 'caption' => '🔒 Aktivieren', 'onClick' => 'echo TUER_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
+                ['type' => 'Button', 'caption' => '🔒 Aktivieren', 'onClick' => 'echo PFOE_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
             ],
         ];
     }
@@ -280,18 +280,18 @@ class Tueroeffner extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => true,
-            'caption' => '🔓  Türöffner — entsperrt',
+            'caption' => '🔓  Pförtner — entsperrt',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Passwort ist gesetzt, dieses Formular ist gerade entsperrt. „Jetzt sperren“ sperrt sofort; ansonsten bleibt es entsperrt, bis das Formular geschlossen und neu geöffnet wird.'],
-                ['type' => 'Button', 'caption' => '🔒 Jetzt sperren', 'onClick' => 'echo TUER_LockVaultNow($id);'],
+                ['type' => 'Button', 'caption' => '🔒 Jetzt sperren', 'onClick' => 'echo PFOE_LockVaultNow($id);'],
                 [
                     'type' => 'ExpansionPanel', 'expanded' => false,
-                    'caption' => '🔑  Passwort ändern oder Türöffner deaktivieren',
+                    'caption' => '🔑  Passwort ändern oder Pförtner deaktivieren',
                     'items' => [
-                        ['type' => 'Label', 'caption' => 'Neues Passwort zweimal eingeben. Beide Felder leer lassen und „Übernehmen“ klicken = Türöffner deaktivieren (Formular dauerhaft offen).'],
+                        ['type' => 'Label', 'caption' => 'Neues Passwort zweimal eingeben. Beide Felder leer lassen und „Übernehmen“ klicken = Pförtner deaktivieren (Formular dauerhaft offen).'],
                         ['type' => 'PasswordTextBox', 'name' => 'VaultNewPassword', 'caption' => 'Neues Passwort'],
                         ['type' => 'PasswordTextBox', 'name' => 'VaultNewPasswordRepeat', 'caption' => 'Neues Passwort wiederholen'],
-                        ['type' => 'Button', 'caption' => 'Übernehmen', 'onClick' => 'echo TUER_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
+                        ['type' => 'Button', 'caption' => 'Übernehmen', 'onClick' => 'echo PFOE_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
                     ],
                 ],
             ],
@@ -306,8 +306,8 @@ class Tueroeffner extends IPSModule
             'caption' => '🔌  Für andere Module (Vertrag)',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Andere Module können dasselbe Passwort für ihre eigenen sensiblen Formular-Panels abfragen. Diese Instanz hat die ID ' . $id . '.'],
-                ['type' => 'Label', 'caption' => 'TUER_CheckAccess(' . $id . ', $passwort): bool — reiner Passwort-Vergleich, verändert nichts an dieser Instanz. TUER_IsActive(' . $id . '): bool — ob überhaupt ein Passwort gesetzt ist (wenn nicht: Panels normal zeigen, Fail-open).'],
-                ['type' => 'Label', 'caption' => 'Der Türöffner kann kein fremdes Formular sperren (Symcon hat dafür keinen Mechanismus). Jedes Partnermodul baut seine Sperr-UI selbst: eigenes „Entsperrt“-Attribut, Passwortfeld + „Entsperren“-Button, der TUER_CheckAccess() aufruft. Aufrufe immer hinter function_exists(\'TUER_CheckAccess\'). Muster und Beispielcode: README im Repository.'],
+                ['type' => 'Label', 'caption' => 'PFOE_CheckAccess(' . $id . ', $passwort): bool — reiner Passwort-Vergleich, verändert nichts an dieser Instanz. PFOE_IsActive(' . $id . '): bool — ob überhaupt ein Passwort gesetzt ist (wenn nicht: Panels normal zeigen, Fail-open).'],
+                ['type' => 'Label', 'caption' => 'Der Pförtner kann kein fremdes Formular sperren (Symcon hat dafür keinen Mechanismus). Jedes Partnermodul baut seine Sperr-UI selbst: eigenes „Entsperrt“-Attribut, Passwortfeld + „Entsperren“-Button, der PFOE_CheckAccess() aufruft. Aufrufe immer hinter function_exists(\'PFOE_CheckAccess\'). Muster und Beispielcode: README im Repository.'],
             ],
         ];
     }
@@ -321,9 +321,9 @@ class Tueroeffner extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
             'caption' => '💬  Rückmeldungen',
             'items' => [
-                ['type' => 'Label', 'caption' => '🧪 Der Türöffner ist neu — Fragen, Wünsche oder Fehler sind willkommen (Symcon-Forum bzw. GitHub).'],
+                ['type' => 'Label', 'caption' => '🧪 Der Pförtner ist neu — Fragen, Wünsche oder Fehler sind willkommen (Symcon-Forum bzw. GitHub).'],
                 ['type' => 'Button', 'caption' => 'Zum Repository', 'onClick' => "echo '" . self::REPO_URL . "';", 'link' => true],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'TUER_AckForumHint($id);'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckForumHint($id);'],
             ],
         ];
     }
@@ -361,9 +361,9 @@ class Tueroeffner extends IPSModule
     private function LockedForm(): array
     {
         return [
-            ['type' => 'Label', 'caption' => '🔒 Der Türöffner lässt dich noch nicht rein — bitte Passwort eingeben.'],
+            ['type' => 'Label', 'caption' => '🔒 Der Pförtner lässt dich noch nicht rein — bitte Passwort eingeben.'],
             ['type' => 'PasswordTextBox', 'name' => 'VaultPasswordInput', 'caption' => 'Passwort'],
-            ['type' => 'Button', 'caption' => '🔓 Entsperren', 'onClick' => 'echo TUER_UnlockVault($id, $VaultPasswordInput);'],
+            ['type' => 'Button', 'caption' => '🔓 Entsperren', 'onClick' => 'echo PFOE_UnlockVault($id, $VaultPasswordInput);'],
         ];
     }
 

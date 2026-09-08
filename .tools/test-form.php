@@ -1,6 +1,6 @@
 <?php
 /**
- * test-form.php — Prüfstand für Türöffner OHNE laufendes Symcon.
+ * test-form.php — Prüfstand für Pförtner OHNE laufendes Symcon.
  *
  * Simuliert die IPSModule-Basisklasse (Attribute, Status, ReloadForm,
  * UpdateFormField) und spielt den kompletten Lebenszyklus durch:
@@ -45,7 +45,7 @@ if (!function_exists('IPS_GetLibrary')) {
     function IPS_GetLibrary(string $guid): array { return ['Version' => '0.0.0-test', 'Build' => 0]; }
 }
 
-require dirname(__DIR__) . '/Tueroeffner/module.php';
+require dirname(__DIR__) . '/Pfoertner/module.php';
 
 $fails = 0;
 $block = '';
@@ -58,7 +58,7 @@ function check(string $what, bool $ok): void
 function heading(string $t): void { global $block; $block = $t; echo "\n[$t]\n"; }
 
 /** Formular als Array + Kurz-Analyse. */
-function form(Tueroeffner $m): array
+function form(Pfoertner $m): array
 {
     $json = $m->GetConfigurationForm();
     $f = json_decode($json, true);
@@ -79,7 +79,7 @@ function isLocked(array $f): bool
     return str_contains($t, 'lässt dich noch nicht rein') && count($f['elements']) === 3;
 }
 
-$m = new Tueroeffner();
+$m = new Pfoertner();
 $m->Create();
 $m->ApplyChanges();
 
@@ -88,7 +88,7 @@ $f = form($m);
 check('IsActive() ist false', $m->IsActive() === false);
 check('Status 104 (inaktiv)', $m->status === 104);
 check('Formular ist NICHT gesperrt', !isLocked($f));
-check('Panel „Türöffner aktivieren“ vorhanden', hasPanel($f, 'Türöffner aktivieren'));
+check('Panel „Pförtner aktivieren“ vorhanden', hasPanel($f, 'Pförtner aktivieren'));
 check('Zweck-Intro steht ganz vorn', ($f['elements'][0]['name'] ?? '') === 'PurposeIntroPanel');
 check('News-Panel an zweiter Stelle', ($f['elements'][1]['name'] ?? '') === 'NewsPanel');
 check('Doku-Panel an dritter Stelle', str_contains($f['elements'][2]['caption'] ?? '', 'Dokumentation'));
@@ -117,7 +117,7 @@ check('Attribut ist ein password_hash()-Hash', password_get_info($hash)['algo'] 
 $f = form($m);
 check('Direkt nach Aktivieren: entsperrt (volles Formular)', !isLocked($f));
 check('Panel „entsperrt“ mit „Jetzt sperren“ sichtbar', hasPanel($f, 'entsperrt') && str_contains(formText($f), 'Jetzt sperren'));
-check('Panel „aktivieren“ nicht mehr sichtbar', !hasPanel($f, 'Türöffner aktivieren'));
+check('Panel „aktivieren“ nicht mehr sichtbar', !hasPanel($f, 'Pförtner aktivieren'));
 
 heading('3. Sperren');
 $r = $m->LockVaultNow();
@@ -156,7 +156,7 @@ check('Neues Passwort gilt', $m->CheckAccess('neu') === true);
 $r = $m->SetVaultPassword('', '');
 check('Leer+leer im aktiven Zustand deaktiviert (ℹ️)', str_starts_with($r, 'ℹ️'));
 check('IsActive() → false, Status 104', $m->IsActive() === false && $m->status === 104);
-check('Formular offen, Panel „aktivieren“ zurück', !isLocked(form($m)) && hasPanel(form($m), 'Türöffner aktivieren'));
+check('Formular offen, Panel „aktivieren“ zurück', !isLocked(form($m)) && hasPanel(form($m), 'Pförtner aktivieren'));
 
 heading('7. Fail-open nach Modul-Resync (Attribut-Verlust)');
 $m->SetVaultPassword('geheim', 'geheim');
@@ -168,7 +168,7 @@ check('Nach Resync: Formular OFFEN, nie „gesperrt ohne Passwort“', !isLocked
 check('Nach Resync: Status 104', $m->status === 104);
 
 heading('8. Vertrags-Hygiene (SUITE.md Stolperstein 8/20)');
-$rc = new ReflectionClass(Tueroeffner::class);
+$rc = new ReflectionClass(Pfoertner::class);
 $publicApi = ['CheckAccess', 'IsActive', 'UnlockVault', 'LockVaultNow', 'SetVaultPassword', 'AckPurposeIntro', 'AckNews', 'AckForumHint'];
 foreach ($publicApi as $name) {
     $rm = $rc->getMethod($name);
@@ -192,11 +192,11 @@ $m->SetVaultPassword('geheim', 'geheim');
 $allForms[] = formText(form($m));               // Zustand 3
 $m->LockVaultNow();
 $allForms[] = formText(form($m));               // Zustand 2
-preg_match_all('/TUER_([A-Za-z]+)\(/', implode("\n", $allForms), $mm);
+preg_match_all('/PFOE_([A-Za-z]+)\(/', implode("\n", $allForms), $mm);
 $called = array_unique($mm[1]);
 check('Mindestens die Kern-Aktionen werden im Formular aufgerufen', count(array_diff(['UnlockVault', 'LockVaultNow', 'SetVaultPassword'], $called)) === 0);
 foreach ($called as $fn) {
-    check("TUER_$fn → public function $fn() existiert", $rc->hasMethod($fn) && $rc->getMethod($fn)->isPublic());
+    check("PFOE_$fn → public function $fn() existiert", $rc->hasMethod($fn) && $rc->getMethod($fn)->isPublic());
 }
 check('Kein Link-Button trägt die URL direkt in "link" (muss true/false sein)', !preg_match('/"link":"http/', implode("\n", $allForms)));
 
