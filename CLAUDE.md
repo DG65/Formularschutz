@@ -53,7 +53,13 @@
    vorausgesetzt — jeder Konsument ruft hinter `function_exists()` auf. Prüfwerkzeug:
    `.tools/check-standalone.php`.
 9. **Sprachregel:** alles Nutzersichtbare auf Deutsch, keine vermeidbaren Anglizismen; Idents,
-   Methodennamen und feststehende Fachbegriffe ausgenommen.
+   Methodennamen und feststehende Fachbegriffe ausgenommen. **Ergänzung SUITE.md Regel 9b
+   (Dietmar, 13.09.2026):** echte Umlaute (ü/ä/ö/ß) statt ue/ae/oe/ss in jedem sichtbaren Text
+   (Idents bleiben ASCII); Datumsangaben im Formular/in Hinweistexten TT.MM.JJJJ, nie
+   JJJJ-MM-TT (dieses Modul zeigt aktuell ohnehin kein Datum an — bei einer künftigen
+   Datumsanzeige diese Regel direkt einhalten, nicht nachträglich umstellen müssen). Stand
+   13.09.2026 bereits konform geprüft (kein ISO-Datum in Formular/README/CLAUDE.md, keine
+   ue/ae/oe/ss-Transliteration in Nutzertexten).
 10. **Keine eigene Anlage als Norm:** dieses Modul hat keine „Anlage“, aber trotzdem keine
     Integrator-/Kunden-Details von Dietmar hartkodieren — Szenarien nur als „z. B.“.
 11. **Store-/Stable-Regeln von Anfang an:** Formular-Buttons nur per `echo`/`UpdateFormField`
