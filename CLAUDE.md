@@ -128,3 +128,12 @@ oder es von sich aus tut.
 - Offen/bewusst nicht drin: Auto-Timeout (abgelehnt), mehrere Passwörter/Rollen je Instanz
   (wäre Schein-Sicherheit — für Rollen gibt es Symcons Benutzerverwaltung), zentrales Sperren
   fremder Formulare (technisch unmöglich in Symcon).
+- **Migrations-Vormerkung, keine Sofort-Pflicht** (Dashboard/Dietmar, 23.09.2026, SUITE.md
+  „Einheitliche Formular-Optik“ Punkt 1): `NEWS_VERSION`-String + `SeenNews`-Gleichheitscheck
+  (aktuell in `NewsBanner()`/`AckNews()`) auf `NEWS_VERSIONS`-Array umstellen (Schlüssel =
+  Version ohne Beta-/Build-Suffix, Wert = Zeilen wie bisher), Caption „🆕 Neu bis Version X“,
+  `version_compare()` gegen `SeenNews`, `AckNews()` speichert die installierte
+  Bibliotheksversion (`IPS_GetLibrary()`, Suffix per Regex entfernt) statt des zuletzt
+  gezeigten Schlüssels. Referenz: `NRGDashboardTile` Build 201. Nicht jetzt anfassen, nur wenn
+  das News-Panel ohnehin wegen einer neuen Version geändert wird (aktuell nur EIN Eintrag,
+  „Lücke seit letzter Version“-Problem existiert hier noch nicht).
