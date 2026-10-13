@@ -1,14 +1,14 @@
 <?php
 
 // ===========================================================================
-// Pförtner (DG65 Toolkit) — optionaler Passwortschutz für Konfigurations-
+// Formularschutz (DG65-Toolkit) — optionaler Passwortschutz für Konfigurations-
 // formulare in der IP-Symcon-Verwaltungskonsole.
 //
 // WAS ES IST: eine Hürde gegen zufälliges oder unbefugtes Klicken. Wer ein
 // Passwort setzt, bekommt dieses Formular beim nächsten Öffnen nur noch als
 // Passwortabfrage zu sehen, bis jemand entsperrt. Andere Module (erster
 // Konsument: OCPPHub, Kundenverwaltung/Abrechnung) fragen über
-// PFOE_CheckAccess() dasselbe Passwort für ihre EIGENEN sensiblen Panels ab.
+// FSCHUTZ_CheckAccess() dasselbe Passwort für ihre EIGENEN sensiblen Panels ab.
 //
 // WAS ES NICHT IST — und das muss bei jeder Erweiterung so bleiben:
 // KEIN Sicherheitsmechanismus. Die Symcon-Konsole kennt keine Nutzer-
@@ -21,15 +21,27 @@
 // vorausgesetzt (jeder Konsument ruft hinter function_exists() auf).
 // ===========================================================================
 
-class Pfoertner extends IPSModule
+class Formularschutz extends IPSModule
 {
     private const LIBRARY_GUID = '{99177A7D-637B-4A9D-AA26-87FEFE79ADB1}';
     private const MODULE_GUID  = '{E526E4DF-8066-4572-8D80-03C80079DD2E}';
 
     // Formular-Konvention (SUITE.md "Einheitliche Formular-Optik").
-    private const NEWS_VERSION = '0.1.0';
-    private const REPO_URL     = 'https://github.com/DG65/Pfoertner';
-    private const LICENSE_URL  = 'https://github.com/DG65/Pfoertner/blob/main/LICENSE';
+    // Schlüssel = Versionsnummer ohne Beta-/Build-Suffix, Wert = Zeilen (SUITE.md
+    // "Einheitliche Formular-Optik" Punkt 1, NEWS_VERSIONS-Konvention 23.09.2026).
+    private const NEWS_VERSIONS = [
+        '0.1.0' => [
+            '• Erstes Release: Passwortschutz für dieses Formular, Vertrag FSCHUTZ_CheckAccess()/FSCHUTZ_IsActive() für andere Module.',
+            '• Kein Auto-Timeout: entsperrt bleibt entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.',
+            '• 👋 Zweck-Einführung ganz oben im Formular (einmalig wegklickbar).',
+        ],
+        '0.2.0' => [
+            '• Umbenannt: das Modul heißt jetzt „Formularschutz“ (vorher „Pförtner“). Funktionspräfix FSCHUTZ_ statt PFOE_ — Skripte und Partnermodule, die PFOE_CheckAccess()/PFOE_IsActive() aufrufen, bitte auf FSCHUTZ_ umstellen.',
+            '• Nach der Umstellung in der Modulverwaltung ist das Passwort zurückgesetzt (Attribute gehen beim Neu-Anlegen des Moduls verloren): Formular ist dann offen, Passwort bitte neu setzen.',
+        ],
+    ];
+    private const REPO_URL     = 'https://github.com/DG65/Formularschutz';
+    private const LICENSE_URL  = 'https://github.com/DG65/Formularschutz/blob/main/LICENSE';
     private const PAYPAL_URL   = 'https://paypal.me/DietmarGureth';
 
     public function Create()
@@ -68,11 +80,11 @@ class Pfoertner extends IPSModule
     // -----------------------------------------------------------------
 
     /**
-     * PFOE_CheckAccess($id, string $password): bool
+     * FSCHUTZ_CheckAccess($id, string $password): bool
      *
      * Zustandsloser Passwort-Vergleich für andere Module, die dasselbe
      * Passwort für ihre EIGENEN Formular-Panels nutzen wollen (hinter
-     * function_exists('PFOE_CheckAccess'), wie jeder Fremdaufruf im
+     * function_exists('FSCHUTZ_CheckAccess'), wie jeder Fremdaufruf im
      * Verbund). Verändert NICHTS an dieser Instanz — kein Entsperren hier,
      * nur die Antwort auf "ist dieses Passwort richtig?".
      *
@@ -82,9 +94,9 @@ class Pfoertner extends IPSModule
      * Muster wie hier (lockedForm()/GetConfigurationForm() als Referenz)
      * und ruft nur zur Prüfung diese Funktion auf.
      *
-     * Liefert false, solange kein Passwort gesetzt ist (Pförtner inaktiv)
+     * Liefert false, solange kein Passwort gesetzt ist (Formularschutz inaktiv)
      * — Konsumenten sollten in diesem Fall FAIL-OPEN reagieren (Panels
-     * zeigen), dafür gibt es PFOE_IsActive().
+     * zeigen), dafür gibt es FSCHUTZ_IsActive().
      *
      * Kein Sicherheitsmechanismus (siehe Kopfkommentar): nur ein Passwort,
      * keine Nutzeridentität; jeder, der es kennt, hat Zugriff. Das Passwort
@@ -97,10 +109,10 @@ class Pfoertner extends IPSModule
     }
 
     /**
-     * PFOE_IsActive($id): bool
+     * FSCHUTZ_IsActive($id): bool
      *
      * true, sobald ein Passwort gesetzt ist. Konsumenten prüfen das VOR dem
-     * Rendern ihrer Sperr-UI: inaktiver Pförtner (oder gar keine Instanz)
+     * Rendern ihrer Sperr-UI: inaktiver Formularschutz (oder gar keine Instanz)
      * = Panels normal zeigen, keine Passwortabfrage — dasselbe Fail-open
      * wie beim eigenen Formular.
      */
@@ -118,7 +130,7 @@ class Pfoertner extends IPSModule
     {
         $hash = $this->ReadAttributeString('VaultPasswordHash');
         if ($hash === '') {
-            return 'ℹ️ Kein Passwort gesetzt — der Pförtner ist inaktiv, das Formular ist ohnehin offen.';
+            return 'ℹ️ Kein Passwort gesetzt — der Formularschutz ist inaktiv, das Formular ist ohnehin offen.';
         }
         if (!password_verify($password, $hash)) {
             // Bewusst OHNE das eingegebene Passwort im Log/Debug.
@@ -137,7 +149,7 @@ class Pfoertner extends IPSModule
     public function LockVaultNow(): string
     {
         if ($this->ReadAttributeString('VaultPasswordHash') === '') {
-            return 'ℹ️ Kein Passwort gesetzt — es gibt nichts zu sperren. Erst im Panel „🔒 Pförtner aktivieren“ ein Passwort vergeben.';
+            return 'ℹ️ Kein Passwort gesetzt — es gibt nichts zu sperren. Erst im Panel „🔒 Formularschutz aktivieren“ ein Passwort vergeben.';
         }
         $this->WriteAttributeBoolean('VaultUnlocked', false);
         // ReloadForm() ist in DIESEM Modul unbedenklich: das volle Formular
@@ -151,7 +163,7 @@ class Pfoertner extends IPSModule
     }
 
     /**
-     * Passwort setzen/ändern/entfernen. Beide Felder leer = Pförtner
+     * Passwort setzen/ändern/entfernen. Beide Felder leer = Formularschutz
      * deaktivieren (Hash löschen, Formular dauerhaft offen). Das zweite
      * Feld schützt nur vor Tippfehlern beim Setzen — ein vertipptes,
      * unbekanntes Passwort wäre sonst die einzige Art, sich (bis zum
@@ -163,13 +175,13 @@ class Pfoertner extends IPSModule
 
         if ($newPassword === '' && $repeat === '') {
             if (!$wasActive) {
-                return 'ℹ️ Kein Passwort eingegeben — der Pförtner bleibt inaktiv.';
+                return 'ℹ️ Kein Passwort eingegeben — der Formularschutz bleibt inaktiv.';
             }
             $this->WriteAttributeString('VaultPasswordHash', '');
             $this->WriteAttributeBoolean('VaultUnlocked', false);
             $this->refreshStatus();
             $this->ReloadForm();
-            return 'ℹ️ Pförtner deaktiviert — dieses Formular ist ab jetzt ohne Passwort erreichbar.';
+            return 'ℹ️ Formularschutz deaktiviert — dieses Formular ist ab jetzt ohne Passwort erreichbar.';
         }
         if ($newPassword !== $repeat) {
             return '⛔ Die beiden Eingaben stimmen nicht überein — nichts geändert.';
@@ -180,8 +192,8 @@ class Pfoertner extends IPSModule
         $this->refreshStatus();
         $this->ReloadForm();
         return $wasActive
-            ? '✅ Passwort geändert — gilt ab sofort auch für Partnermodule, die PFOE_CheckAccess() nutzen.'
-            : '✅ Pförtner aktiviert — dieses Formular bleibt jetzt entsperrt, bis du „Jetzt sperren“ klickst oder es nach dem Schließen erneut öffnest.';
+            ? '✅ Passwort geändert — gilt ab sofort auch für Partnermodule, die FSCHUTZ_CheckAccess() nutzen.'
+            : '✅ Formularschutz aktiviert — dieses Formular bleibt jetzt entsperrt, bis du „Jetzt sperren“ klickst oder es nach dem Schließen erneut öffnest.';
     }
 
     // -----------------------------------------------------------------
@@ -196,7 +208,16 @@ class Pfoertner extends IPSModule
 
     public function AckNews(): void
     {
-        $this->WriteAttributeString('SeenNews', self::NEWS_VERSION);
+        // Installierte Bibliotheksversion (Beta-/Build-Suffix entfernt), NICHT der zuletzt
+        // gezeigte Schlüssel — so zeigt ein späteres Update den Banner sicher wieder.
+        $lib = @IPS_GetLibrary(self::LIBRARY_GUID);
+        $ver = (is_array($lib) && isset($lib['Version'])) ? preg_replace('/-.*$/', '', (string)$lib['Version']) : '';
+        if ($ver === '') {
+            $keys = array_map('strval', array_keys(self::NEWS_VERSIONS));
+            usort($keys, 'version_compare');
+            $ver = end($keys);
+        }
+        $this->WriteAttributeString('SeenNews', $ver);
         $this->UpdateFormField('NewsPanel', 'visible', false);
     }
 
@@ -215,28 +236,37 @@ class Pfoertner extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'PurposeIntroPanel', 'expanded' => true,
             'caption' => '👋  Wozu dieses Modul?',
             'items' => [
-                ['type' => 'Label', 'caption' => 'Der Pförtner legt ein Passwort vor Konfigurationsformulare in der Symcon-Konsole. Gedacht für Installationen mit mehreren Konsolen-Nutzern — z. B. ein Integrator, dessen Kunde selbst Skripte schreiben darf, aber nicht versehentlich in fremden Instanzen herumklicken soll, oder Formulare mit Kundendaten, die nicht jeder auf den ersten Blick sehen soll.'],
-                ['type' => 'Label', 'caption' => 'Ehrlich gesagt: Das ist eine Hürde, kein Schloss. Symcons Konsole kennt keine Nutzeridentität, und Skripte sowie IPS_SetProperty() gehen daran komplett vorbei. Für echte Zugriffskontrolle gibt es nur Symcons kostenpflichtige Benutzerverwaltung — der Pförtner ersetzt sie nicht.'],
+                ['type' => 'Label', 'caption' => 'Der Formularschutz legt ein Passwort vor Konfigurationsformulare in der Symcon-Konsole. Gedacht für Installationen mit mehreren Konsolen-Nutzern — z. B. ein Integrator, dessen Kunde selbst Skripte schreiben darf, aber nicht versehentlich in fremden Instanzen herumklicken soll, oder Formulare mit Kundendaten, die nicht jeder auf den ersten Blick sehen soll.'],
+                ['type' => 'Label', 'caption' => 'Ehrlich gesagt: Das ist eine Hürde, kein Schloss. Symcons Konsole kennt keine Nutzeridentität, und Skripte sowie IPS_SetProperty() gehen daran komplett vorbei. Für echte Zugriffskontrolle gibt es nur Symcons kostenpflichtige Benutzerverwaltung — der Formularschutz ersetzt sie nicht.'],
                 ['type' => 'Label', 'caption' => 'Andere Module (z. B. OCPPHub für Kundenverwaltung/Abrechnung) können dasselbe Passwort für ihre eigenen sensiblen Panels abfragen — siehe Panel „🔌 Für andere Module“.'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckPurposeIntro($id);'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'FSCHUTZ_AckPurposeIntro($id);'],
             ],
         ];
     }
 
     private function NewsBanner(): ?array
     {
-        if ($this->ReadAttributeString('SeenNews') === self::NEWS_VERSION) {
+        $seen   = $this->ReadAttributeString('SeenNews');
+        $items  = [];
+        $newest = '';
+        foreach (self::NEWS_VERSIONS as $ver => $lines) {
+            if (version_compare((string)$ver, $seen, '>')) {
+                foreach ($lines as $line) {
+                    $items[] = ['type' => 'Label', 'caption' => $line];
+                }
+                if ($newest === '' || version_compare((string)$ver, $newest, '>')) {
+                    $newest = (string)$ver;
+                }
+            }
+        }
+        if ($items === []) {
             return null;
         }
+        $items[] = ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'FSCHUTZ_AckNews($id);'];
         return [
             'type' => 'ExpansionPanel', 'name' => 'NewsPanel', 'expanded' => true,
-            'caption' => '🆕  Neu in Version ' . self::NEWS_VERSION,
-            'items' => [
-                ['type' => 'Label', 'caption' => '• Erstes Release: Passwortschutz für dieses Formular (Panel „🔒 Pförtner aktivieren“), Vertrag PFOE_CheckAccess()/PFOE_IsActive() für andere Module.'],
-                ['type' => 'Label', 'caption' => '• Kein Auto-Timeout: entsperrt bleibt entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.'],
-                ['type' => 'Label', 'caption' => '• 👋 Zweck-Einführung ganz oben im Formular (einmalig wegklickbar).'],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckNews($id);'],
-            ],
+            'caption' => '🆕  Neu bis Version ' . $newest,
+            'items' => $items,
         ];
     }
 
@@ -244,18 +274,18 @@ class Pfoertner extends IPSModule
     {
         $lib    = @IPS_GetLibrary(self::LIBRARY_GUID);
         $verTxt = (is_array($lib) && isset($lib['Version']))
-            ? 'ℹ️ Pförtner Version ' . $lib['Version'] . ' (Build ' . ($lib['Build'] ?? '?') . ')'
-            : 'ℹ️ Pförtner';
+            ? 'ℹ️ Formularschutz Version ' . $lib['Version'] . ' (Build ' . ($lib['Build'] ?? '?') . ')'
+            : 'ℹ️ Formularschutz';
         return [
             'type' => 'ExpansionPanel', 'expanded' => false,
             'caption' => '📖  Dokumentation & Hilfe',
             'items' => [
                 ['type' => 'Label', 'caption' => $verTxt],
-                ['type' => 'Label', 'caption' => 'Aktivieren: im Panel „🔒 Pförtner aktivieren“ ein Passwort zweimal eingeben und „Aktivieren“ klicken. Ab dem nächsten Öffnen zeigt dieses Formular nur noch ein Passwortfeld — bis jemand mit dem richtigen Passwort entsperrt.'],
+                ['type' => 'Label', 'caption' => 'Aktivieren: im Panel „🔒 Formularschutz aktivieren“ ein Passwort zweimal eingeben und „Aktivieren“ klicken. Ab dem nächsten Öffnen zeigt dieses Formular nur noch ein Passwortfeld — bis jemand mit dem richtigen Passwort entsperrt.'],
                 ['type' => 'Label', 'caption' => 'Sperren/Entsperren: „Jetzt sperren“ wirkt sofort. Es gibt bewusst keinen automatischen Ablauf — entsperrt bleibt entsperrt, bis gesperrt wird oder das Formular geschlossen und neu geöffnet wird. Passwort ändern oder deaktivieren (beide Felder leer lassen) geht jederzeit im entsperrten Zustand.'],
-                ['type' => 'Label', 'caption' => 'WICHTIG — kein Sicherheitsmechanismus: Der Pförtner verhindert nur Klicks in Formularen. Skripte, die Konsolen-Skriptausführung und IPS_GetConfiguration()/IPS_SetProperty() gehen daran komplett vorbei. Er kennt nur EIN Passwort, keine Nutzeridentität — jeder, der es kennt, hat Zugriff. Für echte Rollen/Rechte braucht es Symcons kostenpflichtige Benutzerverwaltung.'],
-                ['type' => 'Label', 'caption' => 'Passwort vergessen? Weil das Modul absichtlich kein Sicherheitsmechanismus ist, gibt es einen Ausweg per Skript: PFOE_SetVaultPassword(<InstanzID>, \'neu\', \'neu\') setzt ein neues Passwort, PFOE_SetVaultPassword(<InstanzID>, \'\', \'\') deaktiviert den Pförtner.'],
-                ['type' => 'Label', 'caption' => 'Das Passwort wird nur als Hash gespeichert (password_hash), nie im Klartext — in einem Instanz-Attribut, nicht in einer Property. Bei einem erzwungenen Modul-Resync (Modul löschen + neu anlegen in der Modulverwaltung) geht das Attribut verloren: Der Pförtner fällt dann bewusst OFFEN zurück (nie „gesperrt ohne bekanntes Passwort“) — Passwort danach einfach neu setzen.'],
+                ['type' => 'Label', 'caption' => 'WICHTIG — kein Sicherheitsmechanismus: Der Formularschutz verhindert nur Klicks in Formularen. Skripte, die Konsolen-Skriptausführung und IPS_GetConfiguration()/IPS_SetProperty() gehen daran komplett vorbei. Er kennt nur EIN Passwort, keine Nutzeridentität — jeder, der es kennt, hat Zugriff. Für echte Rollen/Rechte braucht es Symcons kostenpflichtige Benutzerverwaltung.'],
+                ['type' => 'Label', 'caption' => 'Passwort vergessen? Weil das Modul absichtlich kein Sicherheitsmechanismus ist, gibt es einen Ausweg per Skript: FSCHUTZ_SetVaultPassword(<InstanzID>, \'neu\', \'neu\') setzt ein neues Passwort, FSCHUTZ_SetVaultPassword(<InstanzID>, \'\', \'\') deaktiviert den Formularschutz.'],
+                ['type' => 'Label', 'caption' => 'Das Passwort wird nur als Hash gespeichert (password_hash), nie im Klartext — in einem Instanz-Attribut, nicht in einer Property. Bei einem erzwungenen Modul-Resync (Modul löschen + neu anlegen in der Modulverwaltung) geht das Attribut verloren: Der Formularschutz fällt dann bewusst OFFEN zurück (nie „gesperrt ohne bekanntes Passwort“) — Passwort danach einfach neu setzen.'],
                 ['type' => 'Label', 'caption' => 'Mehrere Instanzen sind erlaubt (z. B. ein Passwort pro Kunde/Gewerk). Jede Instanz hat ihr eigenes Passwort; Partnermodule nennen die Instanz, gegen die sie prüfen.'],
             ],
         ];
@@ -265,13 +295,13 @@ class Pfoertner extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => true,
-            'caption' => '🔒  Pförtner aktivieren',
+            'caption' => '🔒  Formularschutz aktivieren',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Noch kein Passwort gesetzt — dieses Formular ist offen. Passwort zweimal eingeben und „Aktivieren“ klicken.'],
                 ['type' => 'Label', 'caption' => 'Schützt nur vor Klicks in der Konsole, NICHT vor Skript-/API-Zugriff (siehe „📖 Dokumentation & Hilfe“). Fürs Tippfehler-Risiko wird das Passwort zweimal abgefragt.'],
                 ['type' => 'PasswordTextBox', 'name' => 'VaultNewPassword', 'caption' => 'Neues Passwort'],
                 ['type' => 'PasswordTextBox', 'name' => 'VaultNewPasswordRepeat', 'caption' => 'Neues Passwort wiederholen'],
-                ['type' => 'Button', 'caption' => '🔒 Aktivieren', 'onClick' => 'echo PFOE_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
+                ['type' => 'Button', 'caption' => '🔒 Aktivieren', 'onClick' => 'echo FSCHUTZ_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
             ],
         ];
     }
@@ -280,18 +310,18 @@ class Pfoertner extends IPSModule
     {
         return [
             'type' => 'ExpansionPanel', 'expanded' => true,
-            'caption' => '🔓  Pförtner — entsperrt',
+            'caption' => '🔓  Formularschutz — entsperrt',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Passwort ist gesetzt, dieses Formular ist gerade entsperrt. „Jetzt sperren“ sperrt sofort; ansonsten bleibt es entsperrt, bis das Formular geschlossen und neu geöffnet wird.'],
-                ['type' => 'Button', 'caption' => '🔒 Jetzt sperren', 'onClick' => 'echo PFOE_LockVaultNow($id);'],
+                ['type' => 'Button', 'caption' => '🔒 Jetzt sperren', 'onClick' => 'echo FSCHUTZ_LockVaultNow($id);'],
                 [
                     'type' => 'ExpansionPanel', 'expanded' => false,
-                    'caption' => '🔑  Passwort ändern oder Pförtner deaktivieren',
+                    'caption' => '🔑  Passwort ändern oder Formularschutz deaktivieren',
                     'items' => [
-                        ['type' => 'Label', 'caption' => 'Neues Passwort zweimal eingeben. Beide Felder leer lassen und „Übernehmen“ klicken = Pförtner deaktivieren (Formular dauerhaft offen).'],
+                        ['type' => 'Label', 'caption' => 'Neues Passwort zweimal eingeben. Beide Felder leer lassen und „Übernehmen“ klicken = Formularschutz deaktivieren (Formular dauerhaft offen).'],
                         ['type' => 'PasswordTextBox', 'name' => 'VaultNewPassword', 'caption' => 'Neues Passwort'],
                         ['type' => 'PasswordTextBox', 'name' => 'VaultNewPasswordRepeat', 'caption' => 'Neues Passwort wiederholen'],
-                        ['type' => 'Button', 'caption' => 'Übernehmen', 'onClick' => 'echo PFOE_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
+                        ['type' => 'Button', 'caption' => 'Übernehmen', 'onClick' => 'echo FSCHUTZ_SetVaultPassword($id, $VaultNewPassword, $VaultNewPasswordRepeat);'],
                     ],
                 ],
             ],
@@ -306,8 +336,8 @@ class Pfoertner extends IPSModule
             'caption' => '🔌  Für andere Module (Vertrag)',
             'items' => [
                 ['type' => 'Label', 'caption' => 'Andere Module können dasselbe Passwort für ihre eigenen sensiblen Formular-Panels abfragen. Diese Instanz hat die ID ' . $id . '.'],
-                ['type' => 'Label', 'caption' => 'PFOE_CheckAccess(' . $id . ', $passwort): bool — reiner Passwort-Vergleich, verändert nichts an dieser Instanz. PFOE_IsActive(' . $id . '): bool — ob überhaupt ein Passwort gesetzt ist (wenn nicht: Panels normal zeigen, Fail-open).'],
-                ['type' => 'Label', 'caption' => 'Der Pförtner kann kein fremdes Formular sperren (Symcon hat dafür keinen Mechanismus). Jedes Partnermodul baut seine Sperr-UI selbst: eigenes „Entsperrt“-Attribut, Passwortfeld + „Entsperren“-Button, der PFOE_CheckAccess() aufruft. Aufrufe immer hinter function_exists(\'PFOE_CheckAccess\'). Muster und Beispielcode: README im Repository.'],
+                ['type' => 'Label', 'caption' => 'FSCHUTZ_CheckAccess(' . $id . ', $passwort): bool — reiner Passwort-Vergleich, verändert nichts an dieser Instanz. FSCHUTZ_IsActive(' . $id . '): bool — ob überhaupt ein Passwort gesetzt ist (wenn nicht: Panels normal zeigen, Fail-open).'],
+                ['type' => 'Label', 'caption' => 'Der Formularschutz kann kein fremdes Formular sperren (Symcon hat dafür keinen Mechanismus). Jedes Partnermodul baut seine Sperr-UI selbst: eigenes „Entsperrt“-Attribut, Passwortfeld + „Entsperren“-Button, der FSCHUTZ_CheckAccess() aufruft. Aufrufe immer hinter function_exists(\'FSCHUTZ_CheckAccess\'). Muster und Beispielcode: README im Repository.'],
             ],
         ];
     }
@@ -321,9 +351,9 @@ class Pfoertner extends IPSModule
             'type' => 'ExpansionPanel', 'name' => 'ForumHintPanel', 'expanded' => true,
             'caption' => '💬  Rückmeldungen',
             'items' => [
-                ['type' => 'Label', 'caption' => '🧪 Der Pförtner ist neu — Fragen, Wünsche oder Fehler sind willkommen (Symcon-Forum bzw. GitHub).'],
+                ['type' => 'Label', 'caption' => '🧪 Der Formularschutz ist neu — Fragen, Wünsche oder Fehler sind willkommen (Symcon-Forum bzw. GitHub).'],
                 ['type' => 'Button', 'caption' => 'Zum Repository', 'onClick' => "echo '" . self::REPO_URL . "';", 'link' => true],
-                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'PFOE_AckForumHint($id);'],
+                ['type' => 'Button', 'caption' => 'Verstanden – nicht mehr anzeigen', 'onClick' => 'FSCHUTZ_AckForumHint($id);'],
             ],
         ];
     }
@@ -361,9 +391,9 @@ class Pfoertner extends IPSModule
     private function LockedForm(): array
     {
         return [
-            ['type' => 'Label', 'caption' => '🔒 Der Pförtner lässt dich noch nicht rein — bitte Passwort eingeben.'],
+            ['type' => 'Label', 'caption' => '🔒 Dieses Formular ist gesperrt — bitte Passwort eingeben.'],
             ['type' => 'PasswordTextBox', 'name' => 'VaultPasswordInput', 'caption' => 'Passwort'],
-            ['type' => 'Button', 'caption' => '🔓 Entsperren', 'onClick' => 'echo PFOE_UnlockVault($id, $VaultPasswordInput);'],
+            ['type' => 'Button', 'caption' => '🔓 Entsperren', 'onClick' => 'echo FSCHUTZ_UnlockVault($id, $VaultPasswordInput);'],
         ];
     }
 

@@ -1,17 +1,15 @@
 {
   "id": "{E526E4DF-8066-4572-8D80-03C80079DD2E}",
   "library": "{99177A7D-637B-4A9D-AA26-87FEFE79ADB1}",
-  "name": "Pfoertner",
+  "name": "Formularschutz",
   "type": 3,
   "vendor": "",
   "aliases": [
-    "Pförtner",
-    "DG65 Toolkit Pförtner",
-    "Formular-Passwortschutz"
+    "DG65-Toolkit Formularschutz"
   ],
-  "url": "https://github.com/DG65/Pfoertner",
+  "url": "https://github.com/DG65/Formularschutz",
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
-  "prefix": "PFOE"
+  "prefix": "FSCHUTZ"
 }

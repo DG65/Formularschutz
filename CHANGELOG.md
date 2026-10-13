@@ -3,6 +3,26 @@
 Alle nennenswerten Änderungen an diesem Modul werden hier dokumentiert.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [0.2.0] - 2026-10-13
+
+### Changed
+- **Umbenennung auf den Funktionsnamen** (Dietmar, 13.10.2026, TOOLKIT.md „Umbenennung auf
+  Funktionsnamen“): „Pförtner“ → **„DG65-Toolkit Formularschutz“**. Klasse und Modulordner
+  `Formularschutz`, Funktionspräfix `FSCHUTZ_` statt `PFOE_`, Repo `DG65/Formularschutz`
+  (GitHub-Umbenennung). **Bibliotheks- und Modul-GUID unverändert**, damit bestehende Instanzen
+  sich wieder anhängen. Der Vertrag (`CheckAccess`/`IsActive`) ist inhaltlich unverändert, nur der
+  Präfix wandert — Konsumenten rufen `FSCHUTZ_` zuerst und `PFOE_` als Rückfall auf.
+- Genau ein Alias („DG65-Toolkit Formularschutz“), Bindestrich-Schreibweise „DG65-Toolkit“.
+- Sperrtext ohne Pförtner-Bild: „Dieses Formular ist gesperrt — bitte Passwort eingeben.“
+- News-Panel nach der verbundweiten `NEWS_VERSIONS`-Konvention (zeigt nur die Lücke seit der
+  zuletzt bestätigten Version, „Neu bis Version X“; „Verstanden“ speichert die installierte
+  Bibliotheksversion).
+
+### Hinweis zum Umstieg
+- Beim Neu-Anlegen des Moduls in der Modulverwaltung gehen Instanz-**Attribute** verloren — hier das
+  Passwort (Hash) und die weggeklickten Hinweise. Der Formularschutz fällt dann bewusst **offen**
+  zurück (nie „gesperrt ohne Passwort“); Passwort danach neu setzen.
+
 ## [0.1.0] - 2026-09-08
 
 ### Added

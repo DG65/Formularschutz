@@ -1,27 +1,38 @@
-# Pförtner
+# Formularschutz
 
 ![Symcon](https://img.shields.io/badge/Symcon-PHPModul-blue)
-![Modul Version](https://img.shields.io/badge/Modul_Version-0.1.0-blue)
+![Modul Version](https://img.shields.io/badge/Modul_Version-0.2.0-blue)
 ![Symcon Version](https://img.shields.io/badge/Symcon_Version-9.0%2B-blue)
 ![License](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-lightgrey)
-![Check Style](https://github.com/DG65/Pfoertner/actions/workflows/check-style.yml/badge.svg)
+![Check Style](https://github.com/DG65/Formularschutz/actions/workflows/check-style.yml/badge.svg)
 [![PayPal](https://img.shields.io/badge/PayPal-Me-blue?logo=paypal)](https://paypal.me/DietmarGureth)
 
-Der **Pförtner** legt ein Passwort vor Konfigurationsformulare in der IP-Symcon-Verwaltungskonsole.
+Der **Formularschutz** legt ein Passwort vor Konfigurationsformulare in der IP-Symcon-Verwaltungskonsole.
 Gedacht für Installationen, in denen mehrere Menschen die Konsole benutzen — etwa ein Integrator,
 dessen Kunde selbst Skripte schreiben darf, aber nicht versehentlich in fremden Instanzen
 herumklicken soll, oder Formulare mit Kundendaten, die nicht jeder auf den ersten Blick sehen soll.
 
 Andere Module können dasselbe Passwort für ihre **eigenen** sensiblen Formular-Panels abfragen
-(Vertrag `PFOE_CheckAccess()`, siehe unten). Erster Konsument: OCPPHub (Kundenverwaltung/Abrechnung).
+(Vertrag `FSCHUTZ_CheckAccess()`, siehe unten). Erster Konsument: OCPPHub (Kundenverwaltung/Abrechnung).
+
+## Umbenennung (13.10.2026)
+
+Der Formularschutz hieß bis Version 0.1.0 **Pförtner** (Funktionspräfix `PFOE_`, Repo `DG65/Pfoertner`).
+Seit 0.2.0: Name **Formularschutz**, Präfix **`FSCHUTZ_`**, Repo `DG65/Formularschutz` (die alte
+Adresse leitet weiter). Der Vertrag selbst ist inhaltlich unverändert — nur der Präfix wandert.
+Skripte/Partnermodule mit `PFOE_CheckAccess()`/`PFOE_IsActive()` bitte auf `FSCHUTZ_` umstellen
+(neuer Präfix zuerst, alter als Rückfall, solange beide Stände im Umlauf sind). Wer von 0.1.0
+umsteigt, legt das Modul in der Modulverwaltung neu an; die Instanz hängt sich über die gleiche
+GUID wieder an, das **Passwort geht dabei verloren** (Attribut) — das Formular ist danach offen,
+Passwort einfach neu setzen.
 
 ## Wichtige Einschränkung — bitte zuerst lesen
 
-**Der Pförtner ist kein Sicherheitsmechanismus.** Er ist eine Hürde gegen zufälliges oder
+**Der Formularschutz ist kein Sicherheitsmechanismus.** Er ist eine Hürde gegen zufälliges oder
 unbefugtes *Klicken*, mehr nicht:
 
 - Die Symcon-Konsole läuft über **ein gemeinsames Login** und kennt keine Nutzeridentität. Es gibt
-  keinen Kernel-Hook, der weiß, welcher Mensch gerade vor der Konsole sitzt. Der Pförtner kennt
+  keinen Kernel-Hook, der weiß, welcher Mensch gerade vor der Konsole sitzt. Der Formularschutz kennt
   deshalb nur **ein Passwort**, keine Rollen — jeder, der es kennt, hat Zugriff.
 - Er schützt **ausschließlich** vor Klicks im Formular. `IPS_GetConfiguration()`,
   `IPS_SetProperty()`, jedes Skript und die Skriptausführung in der Konsole gehen daran komplett
@@ -36,27 +47,27 @@ Erweiterung erhalten.
 
 ## So funktioniert es
 
-1. Instanz „Pförtner“ anlegen (Kategorie „DG65 Toolkit“ bzw. per Suche nach „Pförtner“).
-2. Im Panel **„🔒 Pförtner aktivieren“** ein Passwort zweimal eingeben, „Aktivieren“ klicken.
+1. Instanz „Formularschutz“ anlegen (Kategorie „DG65-Toolkit“ bzw. per Suche nach „Formularschutz“).
+2. Im Panel **„🔒 Formularschutz aktivieren“** ein Passwort zweimal eingeben, „Aktivieren“ klicken.
 3. Ab dem nächsten Öffnen zeigt das Formular nur noch ein Passwortfeld und „🔓 Entsperren“ — sonst
    nichts.
 4. Entsperrt bleibt entsperrt, bis **„🔒 Jetzt sperren“** geklickt oder das Formular geschlossen und
    neu geöffnet wird. Es gibt **bewusst keinen Auto-Timeout**.
-5. Passwort ändern oder den Pförtner deaktivieren (beide Felder leer lassen) geht jederzeit im
+5. Passwort ändern oder den Formularschutz deaktivieren (beide Felder leer lassen) geht jederzeit im
    entsperrten Zustand.
 
 **Passwort vergessen?** Weil das Modul absichtlich kein Sicherheitsmechanismus ist, gibt es einen
 Ausweg per Skript (Konsole → Skript ausführen):
 
 ```php
-PFOE_SetVaultPassword(12345, 'neu', 'neu');   // neues Passwort setzen
-PFOE_SetVaultPassword(12345, '', '');         // Pförtner deaktivieren
+FSCHUTZ_SetVaultPassword(12345, 'neu', 'neu');   // neues Passwort setzen
+FSCHUTZ_SetVaultPassword(12345, '', '');         // Formularschutz deaktivieren
 ```
 
 **Speicherung:** Das Passwort wird nur als Hash gespeichert (`password_hash()`), nie im Klartext —
 in einem Instanz-**Attribut**, nicht in einer Property (taucht damit auch nicht in
 `IPS_GetConfiguration()`/Exporten auf). Attribute gehen bei einem erzwungenen Modul-Resync
-(Modul in der Modulverwaltung löschen + neu anlegen) verloren. Der Pförtner fällt dann bewusst
+(Modul in der Modulverwaltung löschen + neu anlegen) verloren. Der Formularschutz fällt dann bewusst
 **offen** zurück — nie „gesperrt ohne bekanntes Passwort“ —, damit ein Resync niemanden dauerhaft
 aussperrt. Danach das Passwort einfach neu setzen.
 
@@ -66,17 +77,17 @@ Instanz hat ihr eigenes Passwort; Partnermodule nennen die Instanz, gegen die si
 ## Vertrag für andere Module
 
 ```php
-PFOE_CheckAccess(int $instanzID, string $password): bool   // reiner Passwort-Vergleich, zustandslos
-PFOE_IsActive(int $instanzID): bool                        // ist überhaupt ein Passwort gesetzt?
+FSCHUTZ_CheckAccess(int $instanzID, string $password): bool   // reiner Passwort-Vergleich, zustandslos
+FSCHUTZ_IsActive(int $instanzID): bool                        // ist überhaupt ein Passwort gesetzt?
 ```
 
-- `CheckAccess()` verändert **nichts** an der Pförtner-Instanz — kein Entsperren dort, nur die
+- `CheckAccess()` verändert **nichts** an der Formularschutz-Instanz — kein Entsperren dort, nur die
   Antwort „ist dieses Passwort richtig?“. Liefert `false`, solange kein Passwort gesetzt ist.
 - `IsActive()` ist für das Fail-open des Konsumenten gedacht: kein Passwort gesetzt (oder gar keine
-  Pförtner-Instanz installiert) → sensible Panels normal anzeigen, keine Passwortabfrage.
+  Formularschutz-Instanz installiert) → sensible Panels normal anzeigen, keine Passwortabfrage.
 - Modul-GUID für `IPS_GetInstanceListByModuleID()`: `{E526E4DF-8066-4572-8D80-03C80079DD2E}`.
-- Immer hinter `function_exists('PFOE_CheckAccess')` aufrufen und in `try/catch (Throwable)`
-  einpacken — jedes Partnermodul ist optional, ohne Pförtner bleibt jedes andere Modul
+- Immer hinter `function_exists('FSCHUTZ_CheckAccess')` aufrufen und in `try/catch (Throwable)`
+  einpacken — jedes Partnermodul ist optional, ohne Formularschutz bleibt jedes andere Modul
   unverändert funktionsfähig.
 - Einmal veröffentlichte Signaturen werden nie umbenannt, nur additiv um **neue Funktionen**
   erweitert (kein Anbau von Parametern — ein zusätzlicher Parameter ist in Symcon auch mit
@@ -85,23 +96,23 @@ PFOE_IsActive(int $instanzID): bool                        // ist überhaupt ein
 ### Muster für ein Partnermodul (Abschnittsschutz einzelner Panels)
 
 **Ein Modul kann das Formular eines anderen Moduls nicht von außen sperren** — Symcon hat dafür
-keinen Mechanismus, `GetConfigurationForm()` ist immer pro Instanz. Der Pförtner beantwortet nur
+keinen Mechanismus, `GetConfigurationForm()` ist immer pro Instanz. Der Formularschutz beantwortet nur
 die Passwortfrage; die Sperr-UI baut jedes Partnermodul selbst, nach demselben Muster wie der
-Pförtner (`LockedForm()`/`GetConfigurationForm()` in `Pfoertner/module.php` als Referenz):
+Formularschutz (`LockedForm()`/`GetConfigurationForm()` in `Formularschutz/module.php` als Referenz):
 
 ```php
 // Create():
-$this->RegisterPropertyInteger('PfoertnerID', 0);            // welche Pförtner-Instanz (SelectInstance im Formular)
-$this->RegisterAttributeBoolean('SensitiveUnlocked', false);   // eigener Sperrzustand, NICHT der des Pförtners
+$this->RegisterPropertyInteger('FormularschutzID', 0);            // welche Formularschutz-Instanz (SelectInstance im Formular)
+$this->RegisterAttributeBoolean('SensitiveUnlocked', false);   // eigener Sperrzustand, NICHT der des Formularschutzes
 
 private function sensitiveLocked(): bool
 {
-    $tid = $this->ReadPropertyInteger('PfoertnerID');
-    if ($tid <= 0 || !function_exists('PFOE_IsActive')) {
-        return false;                                          // Fail-open: kein Pförtner → alles sichtbar
+    $tid = $this->ReadPropertyInteger('FormularschutzID');
+    if ($tid <= 0 || !function_exists('FSCHUTZ_IsActive')) {
+        return false;                                          // Fail-open: kein Formularschutz → alles sichtbar
     }
     try {
-        return PFOE_IsActive($tid) && !$this->ReadAttributeBoolean('SensitiveUnlocked');
+        return FSCHUTZ_IsActive($tid) && !$this->ReadAttributeBoolean('SensitiveUnlocked');
     } catch (Throwable $e) {
         return false;                                          // Vertragsbruch/fehlende Instanz → offen, nicht tot
     }
@@ -115,14 +126,14 @@ private function sensitiveLocked(): bool
 
 public function UnlockSensitive(string $password): string
 {
-    $tid = $this->ReadPropertyInteger('PfoertnerID');
-    if ($tid <= 0 || !function_exists('PFOE_CheckAccess')) {
-        return 'ℹ️ Kein Pförtner verknüpft — die Abschnitte sind ohnehin sichtbar.';
+    $tid = $this->ReadPropertyInteger('FormularschutzID');
+    if ($tid <= 0 || !function_exists('FSCHUTZ_CheckAccess')) {
+        return 'ℹ️ Kein Formularschutz verknüpft — die Abschnitte sind ohnehin sichtbar.';
     }
     try {
-        $ok = PFOE_CheckAccess($tid, $password);
+        $ok = FSCHUTZ_CheckAccess($tid, $password);
     } catch (Throwable $e) {
-        return '⚠️ Pförtner nicht erreichbar: ' . $e->getMessage();
+        return '⚠️ Formularschutz nicht erreichbar: ' . $e->getMessage();
     }
     if (!$ok) {
         return '⛔ Falsches Passwort.';
@@ -162,9 +173,9 @@ nutzbar, für den gewerblichen Einsatz ist eine gesonderte Lizenz vom Rechteinha
 
 ---
 
-Teil des **DG65 Toolkit** — eigenständige, domänenfreie Symcon-Bausteine von DG65, ohne
-Energiebezug: [GleitenderMittelwert](https://github.com/DG65/NRGGleitenderMittelwert),
-[StrukturHub](https://github.com/DG65/NRGStrukturHub),
-[MigrationsHub](https://github.com/DG65/NRGMigrationsHub) und Pförtner. Kein NRG-Stack-Modul,
-auch wenn der erste Konsument des `PFOE_CheckAccess()`-Vertrags (OCPPHub) aus NRG-Stack kommt —
-das ist Reihenfolge, keine fachliche Zugehörigkeit.
+Teil des **DG65-Toolkit** — eigenständige, domänenfreie Symcon-Bausteine von DG65, ohne
+Energiebezug: Messwertrechner (bisher GleitenderMittelwert),
+[Raumstruktur](https://github.com/DG65/NRGStrukturHub) (bisher StrukturHub),
+[Gerätetausch](https://github.com/DG65/NRGMigrationsHub) (bisher MigrationsHub) und Formularschutz.
+Kein NRG-Stack-Modul, auch wenn der erste Konsument des `FSCHUTZ_CheckAccess()`-Vertrags (OCPPHub)
+aus NRG-Stack kommt — das ist Reihenfolge, keine fachliche Zugehörigkeit.

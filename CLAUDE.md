@@ -1,23 +1,28 @@
-# Pförtner — Hinweise für die Arbeit an diesem Repository
+# Formularschutz — Hinweise für die Arbeit an diesem Repository
 
 ## Einordnung
 
-- **Marke: DG65 Toolkit**, nicht NRG-Stack (Dietmars Entscheidung, 30.08.2026). Toolkit =
-  horizontale, domänenfreie Plattform-Werkzeuge ohne Energie-Fachwissen (Gründungspaar
-  GleitenderMittelwert + StrukturHub, dann MigrationsHub, jetzt Pförtner). NRG-Stack =
-  vertikale Energie-Module. `library.json→name` folgt dem Muster `"DG65 Toolkit <Modulname>"`.
-- **Name:** Pförtner (Dietmar, 01.09.2026). ASCII-Schreibweise für Repo/Ordner/Klasse:
-  `Pfoertner` (Klassenname = Modulname, PHP-Klasse ohne Umlaut; die Anzeige übersetzt
-  `locale.json` auf „Pförtner“). Präfix `PFOE`.
+- **Marke: DG65-Toolkit**, nicht NRG-Stack (Dietmars Entscheidung, 30.08.2026). Toolkit =
+  horizontale, domänenfreie Plattform-Werkzeuge ohne Energie-Fachwissen. NRG-Stack = vertikale
+  Energie-Module. `library.json→name` = `"DG65-Toolkit <Anzeigename>"` (Bindestrich-Schreibweise).
+- **Name seit 13.10.2026:** **Formularschutz** (Dietmar, TOOLKIT.md „Umbenennung auf
+  Funktionsnamen“ — Module sagen, was sie tun). Klasse = Modulordner `Formularschutz`, Präfix
+  `FSCHUTZ`, Repo `DG65/Formularschutz`, genau ein Alias „DG65-Toolkit Formularschutz“. GUIDs
+  (Bibliothek `{99177A7D-…}`, Modul `{E526E4DF-…}`) blieben unverändert.
+  **Namensgeschichte:** Türöffner (Kickoff, 01.09.2026) → Pförtner/`PFOE` (08.09.2026, vor dem
+  ersten Push) → Formularschutz/`FSCHUTZ` (13.10.2026). Die Einfrier-Faustregel in TOOLKIT.md gilt
+  für die Zeit NACH dieser Umbenennung; der Präfix `FSCHUTZ` ist jetzt eingefroren.
 - **Herkunft:** Das Design wurde zuerst in StrukturHub gebaut (Commit `c4a2c5a` im Repo
   `DG65/NRGStrukturHub`, revertiert in `ae8b88f`) und auf Dietmars Entscheidung als eigenes
   Modul ausgekoppelt — Zugriffsschutz hat fachlich nichts mit Objektbaum-Struktur zu tun.
-  Kickoff-Briefing: `/Users/dietmar/Nextcloud/Claude/Pfoertner-Kickoff.md`.
+  Kickoff-Briefing: `/Users/dietmar/Nextcloud/Claude/Tueroeffner-Kickoff.md` (historischer
+  Dateiname).
 - **Verbund-Manifest SUITE.md** liegt NICHT im Repo, sondern nur lokal unter
-  `/Users/dietmar/Nextcloud/Claude/SUITE.md` (öffentliche Repos vs. Architektur-Know-how).
-  Bei Konventionsfragen zuerst dort nachlesen, nicht Code zwischen Modulen vergleichen. Die
-  Stolpersteine/Store-Review/Formular-Optik dort gelten für Symcon-Module generell, nicht nur
-  für NRG-Stack. Der Chef im Ring für neue Konventionen ist EMS.
+  `/Users/dietmar/Nextcloud/Claude/SUITE.md` (öffentliche Repos vs. Architektur-Know-how);
+  Toolkit-Konventionen stehen in `/Users/dietmar/Nextcloud/Claude/TOOLKIT.md`. Bei
+  Konventionsfragen zuerst dort nachlesen, nicht Code zwischen Modulen vergleichen. Die
+  Stolpersteine/Store-Review/Formular-Optik gelten für Symcon-Module generell, nicht nur für
+  NRG-Stack.
 
 ## Grundregeln — nicht verhandelbar
 
@@ -35,7 +40,7 @@
 4. **Fail-open per Design.** Leerer Hash = IMMER volles, offenes Formular, nie „gesperrt ohne
    bekanntes Passwort“. Grund: `MC_DeleteModule()`+`MC_CreateModule()`-Resyncs löschen
    Attribute (SUITE.md Stolperstein 5). Konsumenten sollen sich gleich verhalten
-   (`PFOE_IsActive()` existiert genau dafür). Niemals in Richtung „bei Zweifel sperren“ umbauen.
+   (`FSCHUTZ_IsActive()` existiert genau dafür). Niemals in Richtung „bei Zweifel sperren“ umbauen.
 5. **Kein Auto-Timeout** (Dietmars ausdrückliche Entscheidung, 30.08.2026). Entsperrt bleibt
    entsperrt, bis „Jetzt sperren“ geklickt oder das Formular geschlossen und neu geöffnet wird.
 6. **`ReloadForm()`-Regel.** In DIESEM Modul ist `ReloadForm()` in allen Aktionen unbedenklich,
@@ -44,12 +49,12 @@
    SUITE.md Stolperstein 12: `ReloadForm()` nur aus dem gesperrten Zustand (einziges Feld =
    Passwort), sonst `UpdateFormField()`. Für Konsumenten mit Fachfeldern (OCPPHub) gilt das
    schon jetzt — siehe Muster im README.
-7. **Vertrag ist öffentliche API.** `PFOE_CheckAccess(string): bool` und `PFOE_IsActive(): bool`
+7. **Vertrag ist öffentliche API.** `FSCHUTZ_CheckAccess(string): bool` und `FSCHUTZ_IsActive(): bool`
    werden nie umbenannt, Rückgabetyp bleibt `bool` (Text-als-bool-Falle, SUITE.md „Sichtbare
    Rückmeldung“ Punkt 3). Keine PHP-Standardwerte auf öffentlichen Methoden, nur skalare
    Parametertypen (Stolperstein 8/20) — der Prüfstand `.tools/test-form.php` Block 8 erzwingt
    das. Erweiterungen nur als NEUE Funktionen, nie als angebaute Parameter.
-8. **Eigenständigkeit.** Pförtner setzt kein anderes Modul voraus und wird von keinem
+8. **Eigenständigkeit.** Formularschutz setzt kein anderes Modul voraus und wird von keinem
    vorausgesetzt — jeder Konsument ruft hinter `function_exists()` auf. Prüfwerkzeug:
    `.tools/check-standalone.php`.
 9. **Sprachregel:** alles Nutzersichtbare auf Deutsch, keine vermeidbaren Anglizismen; Idents,
@@ -71,9 +76,9 @@
 
 `GetConfigurationForm()` verzweigt GANZ AM ANFANG, bevor irgendein anderer Inhalt gebaut wird:
 
-1. kein Passwort → volles Formular + Panel „🔒 Pförtner aktivieren“ (aufgeklappt)
+1. kein Passwort → volles Formular + Panel „🔒 Formularschutz aktivieren“ (aufgeklappt)
 2. Passwort gesetzt, gesperrt → NUR Label + `PasswordTextBox` + „🔓 Entsperren“ (`LockedForm()`)
-3. Passwort gesetzt, entsperrt → volles Formular + Panel „🔓 Pförtner — entsperrt“ mit „Jetzt
+3. Passwort gesetzt, entsperrt → volles Formular + Panel „🔓 Formularschutz — entsperrt“ mit „Jetzt
    sperren“ und Unterpanel „Passwort ändern/deaktivieren“ (leer+leer = deaktivieren)
 
 Rahmen nach SUITE.md „Einheitliche Formular-Optik“: 👋 Zweck-Intro (einmalig) → 🆕 News (je
@@ -128,12 +133,7 @@ oder es von sich aus tut.
 - Offen/bewusst nicht drin: Auto-Timeout (abgelehnt), mehrere Passwörter/Rollen je Instanz
   (wäre Schein-Sicherheit — für Rollen gibt es Symcons Benutzerverwaltung), zentrales Sperren
   fremder Formulare (technisch unmöglich in Symcon).
-- **Migrations-Vormerkung, keine Sofort-Pflicht** (Dashboard/Dietmar, 23.09.2026, SUITE.md
-  „Einheitliche Formular-Optik“ Punkt 1): `NEWS_VERSION`-String + `SeenNews`-Gleichheitscheck
-  (aktuell in `NewsBanner()`/`AckNews()`) auf `NEWS_VERSIONS`-Array umstellen (Schlüssel =
-  Version ohne Beta-/Build-Suffix, Wert = Zeilen wie bisher), Caption „🆕 Neu bis Version X“,
-  `version_compare()` gegen `SeenNews`, `AckNews()` speichert die installierte
-  Bibliotheksversion (`IPS_GetLibrary()`, Suffix per Regex entfernt) statt des zuletzt
-  gezeigten Schlüssels. Referenz: `NRGDashboardTile` Build 201. Nicht jetzt anfassen, nur wenn
-  das News-Panel ohnehin wegen einer neuen Version geändert wird (aktuell nur EIN Eintrag,
-  „Lücke seit letzter Version“-Problem existiert hier noch nicht).
+- **Erledigt in 0.2.0 (13.10.2026):** News-Panel nach der `NEWS_VERSIONS`-Konvention (SUITE.md
+  „Einheitliche Formular-Optik“ Punkt 1) — `NewsBanner()` zeigt nur die Lücke seit `SeenNews`,
+  `AckNews()` speichert die installierte Bibliotheksversion ohne Suffix. Bei jeder künftigen
+  nutzersichtbaren Änderung einen neuen Schlüssel in `NEWS_VERSIONS` ergänzen (Prüfstand Block 10).
